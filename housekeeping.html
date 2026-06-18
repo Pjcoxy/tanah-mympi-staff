@@ -562,8 +562,8 @@ function clearAllPhotos() {
 
 document.getElementById('photoInput')?.addEventListener('change', (e) => {
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/heic', 'image/heif'];
-  const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.heic', '.heif'];
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+  const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif'];
 
   const files = Array.from(e.target.files);
   const validFiles = [];
@@ -614,7 +614,6 @@ document.getElementById('photoInput')?.addEventListener('change', (e) => {
         header.startsWith('ffd8ff') ||  // JPEG
         header.startsWith('89504e47') || // PNG
         header.startsWith('474946') ||   // GIF
-        header.startsWith('424d') ||     // BMP
         header.includes('57454250') ||   // WebP
         header.includes('6674797066747970'); // HEIC/HEIF (ftyp)
 

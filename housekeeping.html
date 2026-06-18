@@ -322,11 +322,6 @@ const CONFIG = {
           <span style="font-size:.85rem;font-weight:600;">Other</span>
         </label>
       </div>
-      <div id="photoSection" style="display:none;margin-bottom:14px;">
-        <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:8px;">📸 Attach Photos (max 5)</label>
-        <input type="file" id="photoInput" accept="image/*" capture="environment" multiple style="font-size:.85rem;display:block;margin-bottom:8px;"/>
-        <div id="photoPreview" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(80px, 1fr));gap:8px;margin-top:10px;"></div>
-      </div>
       <label>Notes <span id="notesRequired" style="color:var(--red);display:none">*</span></label>
       <textarea id="notes" placeholder="Describe the issue…"></textarea>
     </div>
@@ -515,9 +510,8 @@ function updateNotes() {
   notesEl.style.borderColor = checked ? 'var(--red)' : 'var(--border)';
   notesEl.style.background = checked ? '#fdf0ee' : '#fff';
   reqSpan.style.display = checked ? 'inline' : 'none';
-  photoSection.style.display = checked ? 'block' : 'none';
 
-  if (!checked) clearAllPhotos();
+  if (!checked) return;
 
   // Highlight checked action boxes
   document.querySelectorAll('.action-checkbox').forEach(cb => {
@@ -532,102 +526,6 @@ function updateNotes() {
   });
 }
 
-// ── Photo handling ──
-let uploadedPhotos = [];
-
-function displayPhotos() {
-  const preview = document.getElementById('photoPreview');
-  preview.innerHTML = '';
-  uploadedPhotos.forEach((photo, idx) => {
-    const div = document.createElement('div');
-    div.style.cssText = 'position:relative;width:100%;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--border);';
-    div.innerHTML = `
-      <img src="${photo.data}" style="width:100%;height:100%;object-fit:cover;"/>
-      <button type="button" onclick="removePhoto(${idx})" style="position:absolute;top:2px;right:2px;width:20px;height:20px;padding:0;background:var(--red);color:#fff;border:none;border-radius:50%;font-size:.7rem;cursor:pointer;font-weight:bold;">×</button>
-    `;
-    preview.appendChild(div);
-  });
-}
-
-function removePhoto(idx) {
-  uploadedPhotos.splice(idx, 1);
-  displayPhotos();
-}
-
-function clearAllPhotos() {
-  uploadedPhotos = [];
-  document.getElementById('photoInput').value = '';
-  displayPhotos();
-}
-
-document.getElementById('photoInput')?.addEventListener('change', (e) => {
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
-  const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif'];
-
-  const files = Array.from(e.target.files);
-  const validFiles = [];
-
-  for (const file of files) {
-    // Check file size
-    if (file.size > MAX_FILE_SIZE) {
-      alert(`"${file.name}" is too large (max 5MB per photo).`);
-      continue;
-    }
-
-    // Check MIME type
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      alert(`"${file.name}" is not a valid image format (jpg, png, gif, webp only).`);
-      continue;
-    }
-
-    // Check file extension
-    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
-    if (!ALLOWED_EXT.includes(ext)) {
-      alert(`"${file.name}" has invalid extension (use .jpg, .png, .gif, or .webp).`);
-      continue;
-    }
-
-    validFiles.push(file);
-  }
-
-  if (validFiles.length === 0) return;
-
-  if (uploadedPhotos.length + validFiles.length > 5) {
-    alert('Maximum 5 photos allowed. You have ' + uploadedPhotos.length + ' already.');
-    return;
-  }
-
-  validFiles.forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const dataURL = evt.target.result;
-
-      // Validate magic numbers by extracting from dataURL
-      const base64 = dataURL.split(',')[1];
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-
-      const header = Array.from(bytes.subarray(0, 12)).map(x => x.toString(16).padStart(2, '0')).join('');
-      const isValidImage =
-        header.startsWith('ffd8ff') ||  // JPEG
-        header.startsWith('89504e47') || // PNG
-        header.startsWith('474946') ||   // GIF
-        header.includes('57454250') ||   // WebP
-        header.includes('6674797066747970'); // HEIC/HEIF (ftyp)
-
-      if (!isValidImage) {
-        alert(`"${file.name}" appears to be corrupted or not a real image.`);
-        return;
-      }
-
-      uploadedPhotos.push({ name: file.name, data: dataURL });
-      displayPhotos();
-    };
-    reader.readAsDataURL(file);
-  });
-});
 
 // ── Service type filter ──
 function updateServiceItems() {
@@ -688,7 +586,6 @@ async function submitForm() {
   }
 
   const ts = now();
-  const hasPhotos = uploadedPhotos.length > 0;
 
   const payload = {
     action:        'submit',
@@ -698,7 +595,6 @@ async function submitForm() {
     serviceType:   typeEl.options[typeEl.selectedIndex].text,
     actionRequired: actions.length ? actions.join(', ') : 'None',
     notes:         notes || '',
-    photos:        uploadedPhotos.map(p => p.data),
     userAgent:     navigator.userAgent.slice(0, 80)
   };
 
@@ -710,11 +606,10 @@ async function submitForm() {
     ${payload.actionRequired !== 'None' ? `<div class="summary-row"><span>Action Required</span>
       <b style="color:var(--red)">${payload.actionRequired}</b></div>` : ''}
     ${notes ? `<div class="summary-row"><span>Notes</span><b style="font-size:.82rem">${notes}</b></div>` : ''}
-    ${hasPhotos ? `<div class="summary-row"><span>Photos</span><b style="color:var(--green)">✓ ${uploadedPhotos.length} attached</b></div>` : ''}
   `;
 
   // Save last submission details for potential recall
-  lastSubmission = { room, serviceType: typeEl.value, actions, notes, photoData: uploadedPhotos.map(p => p.data) };
+  lastSubmission = { room, serviceType: typeEl.value, actions, notes };
 
   // Save locally always
   saveLocally(payload);
@@ -836,7 +731,6 @@ function resetForm() {
   document.querySelectorAll('.action-checkbox').forEach(cb => cb.checked = false);
   updateServiceItems();
   updateNotes();
-  clearAllPhotos();
   document.getElementById('notes').value               = '';
   document.getElementById('syncStatus').textContent    = '';
   document.getElementById('recallBtn').style.display   = 'block';

@@ -29,7 +29,7 @@ The Tanah Mympi Housekeeping App is a web-based checklist application designed t
 - **Service-type filtering** to show only relevant checklist items
 - **Action required tracking** for maintenance, damage, missing items, and other issues
 - **Real-time Google Sheets syncing** for centralized record-keeping
-- **Offline support** with local caching and automatic sync on reconnection
+- **Offline detection** with warning banner (internet required to submit)
 - **Mobile-friendly interface** optimized for tablets and smartphones
 
 ### Business Value
@@ -278,28 +278,33 @@ Browser Validation
                   Keep in localStorage for retry
 ```
 
-### Offline & Sync Mechanism
+### Internet Requirement
 
 ```
 Device Goes Offline
     │
     ▼
-User continues using app normally
+Offline Banner Shown
     │
-    ├─ Submissions saved to localStorage
-    ├─ Offline banner shown
-    └─ _synced flag = false
-    │
-    ▼
-Device Comes Back Online
+    ├─ Yellow alert banner appears at top
+    ├─ Staff notified of connection loss
+    └─ Submit button disabled
     │
     ▼
-Auto-retry sync (retrySyncs function)
+User Must Reconnect Before Submission
     │
-    ├─ Loop through localStorage items
-    ├─ Attempt POST to Google Sheet
-    ├─ On success: mark _synced = true
-    └─ Update localStorage
+    ├─ Cannot complete form submission while offline
+    ├─ Error message if submission attempted: 
+    │  "You must be connected to the internet to submit"
+    └─ Staff must restore connection and try again
+    │
+    ▼
+Device Reconnects
+    │
+    ▼
+Offline Banner Disappears
+    │
+    └─ Staff can now submit normally
 ```
 
 ---
@@ -357,12 +362,13 @@ Auto-retry sync (retrySyncs function)
 - Otherwise, tap "Start Next Room" to reset and begin the next room
 - All selections will be cleared automatically
 
-#### Offline Work
-- If you lose internet connection, the app still works
-- A yellow banner appears saying "You're offline"
-- Your submissions are saved locally on your device
-- When you reconnect, submissions sync automatically
-- You don't need to do anything - just keep working!
+#### Internet Connection Required
+- **You must have an active internet connection to submit your work**
+- If you lose connection, a yellow banner appears saying "You're offline"
+- The submit button will not work while offline
+- If you try to submit offline, you'll see an error: "You must be connected to the internet to submit"
+- **Reconnect your internet**, then you can submit normally
+- **Do not turn off WiFi** to avoid losing your progress when you try to submit
 
 #### Tips
 - **Be specific in notes** - "Broken mirror" is better than "Damage"
@@ -433,7 +439,8 @@ Auto-retry sync (retrySyncs function)
 - ✅ Progressive disclosure UI (Step 1 → Step 2 → Step 3 → Submit)
 - ✅ Service-type filtering (Full Clean, Refresh, Turndown, Inspection)
 - ✅ Action required tracking (Maintenance, Damage, Missing Item, Other)
-- ✅ Offline support with automatic sync on reconnection
+- ✅ Internet connection validation (required for submission)
+- ✅ Offline detection with warning banner
 - ✅ Google Sheets integration for centralized data
 - ✅ 5-minute submission recall window
 - ✅ Real-time progress tracking

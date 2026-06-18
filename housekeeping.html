@@ -106,6 +106,8 @@
   .item.checked .tick { display:block; }
   .item-label { font-size:.92rem; flex:1; line-height:1.3; }
   .item.checked .item-label { color:var(--green); }
+  .item.na { opacity:.35; pointer-events:none; }
+  .item.na .item-label::after { content:' — N/A'; font-size:.78em; color:var(--muted); }
   .flag-row { padding:13px 14px; border-top:1px solid var(--border);
     display:flex; align-items:center; justify-content:space-between; }
   .flag-row label { font-size:.92rem; }
@@ -248,7 +250,7 @@ const CONFIG = {
     </div>
     <div class="field full">
       <label>Service Type</label>
-      <select id="serviceType">
+      <select id="serviceType" onchange="updateServiceItems()">
         <option value="full">Full Clean (checkout)</option>
         <option value="refresh">Refresh (stay-over)</option>
         <option value="turndown">Turndown Service</option>
@@ -260,49 +262,73 @@ const CONFIG = {
   <!-- BEDROOM -->
   <div class="section">
     <div class="section-head"><h2>Bedroom</h2><span class="section-count" id="count-bedroom">0 / 6</span></div>
-    <div class="item" data-section="bedroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Beds made / linen changed</div></div>
-    <div class="item" data-section="bedroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Pillows fluffed &amp; arranged</div></div>
-    <div class="item" data-section="bedroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floors vacuumed / swept</div></div>
-    <div class="item" data-section="bedroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Surfaces dusted &amp; wiped</div></div>
-    <div class="item" data-section="bedroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Bins emptied &amp; relined</div></div>
-    <div class="item" data-section="bedroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">A/C set to 23°C &amp; working</div></div>
+    <div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Beds made / linen changed</div></div>
+    <div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Pillows fluffed &amp; arranged</div></div>
+    <div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floors vacuumed / swept</div></div>
+    <div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Surfaces dusted &amp; wiped</div></div>
+    <div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Bins emptied &amp; relined</div></div>
+    <div class="item" data-section="bedroom" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">A/C set to 23°C &amp; working</div></div>
   </div>
 
   <!-- BATHROOM -->
   <div class="section">
     <div class="section-head"><h2>Bathroom</h2><span class="section-count" id="count-bathroom">0 / 7</span></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Toilet cleaned &amp; sanitised</div></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Shower / bath scrubbed</div></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Vanity &amp; basin wiped</div></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Mirrors polished</div></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Fresh towels set out</div></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Amenities restocked (soap, shampoo, etc.)</div></div>
-    <div class="item" data-section="bathroom" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floor mopped &amp; dry</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Toilet cleaned &amp; sanitised</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Shower / bath scrubbed</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Vanity &amp; basin wiped</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Mirrors polished</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Fresh towels set out</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Amenities restocked (soap, shampoo, etc.)</div></div>
+    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floor mopped &amp; dry</div></div>
   </div>
 
   <!-- MINIBAR -->
   <div class="section">
     <div class="section-head"><h2>Minibar &amp; Amenities</h2><span class="section-count" id="count-minibar">0 / 4</span></div>
-    <div class="item" data-section="minibar" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Minibar checked &amp; restocked</div></div>
-    <div class="item" data-section="minibar" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Tea &amp; coffee station replenished</div></div>
-    <div class="item" data-section="minibar" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Safe locked &amp; reset to 0000</div></div>
-    <div class="item" data-section="minibar" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Welcome items placed (if checkout room)</div></div>
+    <div class="item" data-section="minibar" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Minibar checked &amp; restocked</div></div>
+    <div class="item" data-section="minibar" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Tea &amp; coffee station replenished</div></div>
+    <div class="item" data-section="minibar" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Safe locked &amp; reset to 0000</div></div>
+    <div class="item" data-section="minibar" data-services="full" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Welcome items placed (checkout rooms only)</div></div>
   </div>
 
   <!-- FINAL -->
   <div class="section">
     <div class="section-head"><h2>Final Checks</h2><span class="section-count" id="count-final">0 / 4</span></div>
-    <div class="item" data-section="final" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Windows &amp; doors locked / secured</div></div>
-    <div class="item" data-section="final" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Lights off (except entry)</div></div>
-    <div class="item" data-section="final" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">DND sign removed / door card updated</div></div>
-    <div class="item" data-section="final" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Room visually inspected before leaving</div></div>
-    <div class="flag-row">
-      <label for="maintFlag">🔧 Maintenance issue found</label>
-      <label class="toggle"><input type="checkbox" id="maintFlag" onchange="updateProgress()"/><span class="slider"></span></label>
-    </div>
+    <div class="item" data-section="final" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Windows &amp; doors locked / secured</div></div>
+    <div class="item" data-section="final" data-services="full refresh turndown inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Lights off (except entry)</div></div>
+    <div class="item" data-section="final" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">DND sign removed / door card updated</div></div>
+    <div class="item" data-section="final" data-services="full refresh turndown inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Room visually inspected before leaving</div></div>
     <div class="notes-wrap">
-      <label>Notes / Issues</label>
-      <textarea id="notes" placeholder="Describe any damage, missing items, or maintenance required…"></textarea>
+      <label>Action Required</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
+          <input type="checkbox" class="action-checkbox" value="Maintenance issue" onchange="updateNotes()" style="display:none"/>
+          <span style="font-size:2rem;">🔧</span>
+          <span style="font-size:.85rem;font-weight:600;">Maintenance</span>
+        </label>
+        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
+          <input type="checkbox" class="action-checkbox" value="Damage" onchange="updateNotes()" style="display:none"/>
+          <span style="font-size:2rem;">⚠️</span>
+          <span style="font-size:.85rem;font-weight:600;">Damage</span>
+        </label>
+        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
+          <input type="checkbox" class="action-checkbox" value="Missing item" onchange="updateNotes()" style="display:none"/>
+          <span style="font-size:2rem;">📋</span>
+          <span style="font-size:.85rem;font-weight:600;">Missing Item</span>
+        </label>
+        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
+          <input type="checkbox" class="action-checkbox" value="Other" onchange="updateNotes()" style="display:none"/>
+          <span style="font-size:2rem;">❓</span>
+          <span style="font-size:.85rem;font-weight:600;">Other</span>
+        </label>
+      </div>
+      <div id="photoSection" style="display:none;margin-bottom:14px;">
+        <label style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:8px;">📸 Attach Photos (max 5)</label>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" multiple style="font-size:.85rem;display:block;margin-bottom:8px;"/>
+        <div id="photoPreview" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(80px, 1fr));gap:8px;margin-top:10px;"></div>
+      </div>
+      <label>Notes <span id="notesRequired" style="color:var(--red);display:none">*</span></label>
+      <textarea id="notes" placeholder="Describe the issue…"></textarea>
     </div>
   </div>
 
@@ -331,7 +357,6 @@ const CONFIG = {
 
 <script>
 // ── State ──
-const TOTAL = document.querySelectorAll('.item').length;
 let currentStaff = null;
 let timeoutTimer = null;
 let lastSubmission = null;   // { id, room, serviceType, maint, notes }
@@ -451,7 +476,7 @@ function showForm(name) {
   document.getElementById('formScreen').style.display   = 'block';
   document.getElementById('staffBadge').textContent     = name;
   resetTimeout();
-  updateProgress();
+  updateServiceItems();
 }
 
 function doLogout() {
@@ -480,6 +505,142 @@ function resetTimeout() {
 document.addEventListener('click',     resetTimeout);
 document.addEventListener('touchstart', resetTimeout);
 
+// ── Action required checkboxes ──
+function updateNotes() {
+  const checked = document.querySelectorAll('.action-checkbox:checked').length > 0;
+  const notesEl = document.getElementById('notes');
+  const reqSpan = document.getElementById('notesRequired');
+  const photoSection = document.getElementById('photoSection');
+
+  notesEl.style.borderColor = checked ? 'var(--red)' : 'var(--border)';
+  notesEl.style.background = checked ? '#fdf0ee' : '#fff';
+  reqSpan.style.display = checked ? 'inline' : 'none';
+  photoSection.style.display = checked ? 'block' : 'none';
+
+  if (!checked) clearAllPhotos();
+
+  // Highlight checked action boxes
+  document.querySelectorAll('.action-checkbox').forEach(cb => {
+    const label = cb.closest('label');
+    if (cb.checked) {
+      label.style.borderColor = 'var(--ocean)';
+      label.style.background = 'var(--sand)';
+    } else {
+      label.style.borderColor = 'var(--border)';
+      label.style.background = '#fff';
+    }
+  });
+}
+
+// ── Photo handling ──
+let uploadedPhotos = [];
+
+function displayPhotos() {
+  const preview = document.getElementById('photoPreview');
+  preview.innerHTML = '';
+  uploadedPhotos.forEach((photo, idx) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'position:relative;width:100%;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--border);';
+    div.innerHTML = `
+      <img src="${photo.data}" style="width:100%;height:100%;object-fit:cover;"/>
+      <button type="button" onclick="removePhoto(${idx})" style="position:absolute;top:2px;right:2px;width:20px;height:20px;padding:0;background:var(--red);color:#fff;border:none;border-radius:50%;font-size:.7rem;cursor:pointer;font-weight:bold;">×</button>
+    `;
+    preview.appendChild(div);
+  });
+}
+
+function removePhoto(idx) {
+  uploadedPhotos.splice(idx, 1);
+  displayPhotos();
+}
+
+function clearAllPhotos() {
+  uploadedPhotos = [];
+  document.getElementById('photoInput').value = '';
+  displayPhotos();
+}
+
+document.getElementById('photoInput')?.addEventListener('change', (e) => {
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp', 'image/heic', 'image/heif'];
+  const ALLOWED_EXT = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.heic', '.heif'];
+
+  const files = Array.from(e.target.files);
+  const validFiles = [];
+
+  for (const file of files) {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      alert(`"${file.name}" is too large (max 5MB per photo).`);
+      continue;
+    }
+
+    // Check MIME type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      alert(`"${file.name}" is not a valid image format (jpg, png, gif, webp only).`);
+      continue;
+    }
+
+    // Check file extension
+    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+    if (!ALLOWED_EXT.includes(ext)) {
+      alert(`"${file.name}" has invalid extension (use .jpg, .png, .gif, or .webp).`);
+      continue;
+    }
+
+    validFiles.push(file);
+  }
+
+  if (validFiles.length === 0) return;
+
+  if (uploadedPhotos.length + validFiles.length > 5) {
+    alert('Maximum 5 photos allowed. You have ' + uploadedPhotos.length + ' already.');
+    return;
+  }
+
+  validFiles.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const dataURL = evt.target.result;
+
+      // Validate magic numbers by extracting from dataURL
+      const base64 = dataURL.split(',')[1];
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+
+      const header = Array.from(bytes.subarray(0, 12)).map(x => x.toString(16).padStart(2, '0')).join('');
+      const isValidImage =
+        header.startsWith('ffd8ff') ||  // JPEG
+        header.startsWith('89504e47') || // PNG
+        header.startsWith('474946') ||   // GIF
+        header.startsWith('424d') ||     // BMP
+        header.includes('57454250') ||   // WebP
+        header.includes('6674797066747970'); // HEIC/HEIF (ftyp)
+
+      if (!isValidImage) {
+        alert(`"${file.name}" appears to be corrupted or not a real image.`);
+        return;
+      }
+
+      uploadedPhotos.push({ name: file.name, data: dataURL });
+      displayPhotos();
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+// ── Service type filter ──
+function updateServiceItems() {
+  const svc = document.getElementById('serviceType').value;
+  document.querySelectorAll('.item[data-services]').forEach(item => {
+    const applies = item.dataset.services.split(' ').includes(svc);
+    item.classList.toggle('na', !applies);
+    if (!applies) item.classList.remove('checked');
+  });
+  updateProgress();
+}
+
 // ── Checklist ──
 function toggle(el) {
   el.classList.toggle('checked');
@@ -487,21 +648,25 @@ function toggle(el) {
 }
 
 function updateProgress() {
-  const checked = document.querySelectorAll('.item.checked').length;
-  const pct     = Math.round((checked / TOTAL) * 100);
+  const required = document.querySelectorAll('.item:not(.na)');
+  const checked  = document.querySelectorAll('.item:not(.na).checked');
+  const total    = required.length;
+  const done     = checked.length;
+  const pct      = total ? Math.round((done / total) * 100) : 100;
+  const left     = total - done;
+
   document.getElementById('pct').textContent          = pct + '%';
   document.getElementById('progressFill').style.width = pct + '%';
-  const left = TOTAL - checked;
-  document.getElementById('remaining').textContent = left > 0 ? `(${left} left)` : '';
+  document.getElementById('remaining').textContent     = left > 0 ? `(${left} left)` : '';
 
   ['bedroom','bathroom','minibar','final'].forEach(sec => {
-    const all  = document.querySelectorAll(`.item[data-section="${sec}"]`).length;
-    const done = document.querySelectorAll(`.item[data-section="${sec}"].checked`).length;
+    const all  = document.querySelectorAll(`.item[data-section="${sec}"]:not(.na)`).length;
+    const done = document.querySelectorAll(`.item[data-section="${sec}"]:not(.na).checked`).length;
     document.getElementById(`count-${sec}`).textContent = `${done} / ${all}`;
   });
 
   const btn = document.getElementById('submitBtn');
-  if (checked === TOTAL) {
+  if (left === 0) {
     btn.disabled = false; btn.textContent = 'Sign Off Room ✓';
   } else {
     btn.disabled = true;
@@ -515,19 +680,27 @@ async function submitForm() {
   if (!room) { alert('Please select a room number.'); return; }
 
   const typeEl = document.getElementById('serviceType');
-  const maint  = document.getElementById('maintFlag').checked;
+  const actions = Array.from(document.querySelectorAll('.action-checkbox:checked')).map(c => c.value);
   const notes  = document.getElementById('notes').value.trim();
-  const ts     = now();
+
+  if (actions.length > 0 && !notes) {
+    alert('Please describe the issue in the notes field.');
+    return;
+  }
+
+  const ts = now();
+  const hasPhotos = uploadedPhotos.length > 0;
 
   const payload = {
-    action:      'submit',
-    timestamp:   ts,
-    staff:       currentStaff,
+    action:        'submit',
+    timestamp:     ts,
+    staff:         currentStaff,
     room,
-    serviceType: typeEl.options[typeEl.selectedIndex].text,
-    maintenance: maint ? 'YES' : 'No',
-    notes:       notes || '',
-    userAgent:   navigator.userAgent.slice(0, 80)
+    serviceType:   typeEl.options[typeEl.selectedIndex].text,
+    actionRequired: actions.length ? actions.join(', ') : 'None',
+    notes:         notes || '',
+    photos:        uploadedPhotos.map(p => p.data),
+    userAgent:     navigator.userAgent.slice(0, 80)
   };
 
   document.getElementById('summaryBox').innerHTML = `
@@ -535,13 +708,14 @@ async function submitForm() {
     <div class="summary-row"><span>Staff</span><b>${currentStaff}</b></div>
     <div class="summary-row"><span>Service</span><b>${payload.serviceType}</b></div>
     <div class="summary-row"><span>Time</span><b>${ts}</b></div>
-    <div class="summary-row"><span>Maintenance</span>
-      <b style="color:${maint?'var(--red)':'var(--green)'}">${payload.maintenance}</b></div>
+    ${payload.actionRequired !== 'None' ? `<div class="summary-row"><span>Action Required</span>
+      <b style="color:var(--red)">${payload.actionRequired}</b></div>` : ''}
     ${notes ? `<div class="summary-row"><span>Notes</span><b style="font-size:.82rem">${notes}</b></div>` : ''}
+    ${hasPhotos ? `<div class="summary-row"><span>Photos</span><b style="color:var(--green)">✓ ${uploadedPhotos.length} attached</b></div>` : ''}
   `;
 
   // Save last submission details for potential recall
-  lastSubmission = { room, serviceType: typeEl.value, maint, notes };
+  lastSubmission = { room, serviceType: typeEl.value, actions, notes, photoData: uploadedPhotos.map(p => p.data) };
 
   // Save locally always
   saveLocally(payload);
@@ -634,8 +808,11 @@ async function recallSubmission() {
       document.getElementById('formScreen').style.display = 'block';
       document.getElementById('roomNum').value      = lastSubmission.room;
       document.getElementById('serviceType').value  = lastSubmission.serviceType;
-      document.getElementById('maintFlag').checked  = lastSubmission.maint;
+      lastSubmission.actions.forEach(action => {
+        document.querySelector(`.action-checkbox[value="${action}"]`).checked = true;
+      });
       document.getElementById('notes').value        = lastSubmission.notes;
+      updateNotes();
       // Reset all checklist items
       document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
       updateProgress();
@@ -657,7 +834,10 @@ function resetForm() {
   document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
   document.getElementById('roomNum').selectedIndex     = 0;
   document.getElementById('serviceType').selectedIndex = 0;
-  document.getElementById('maintFlag').checked         = false;
+  document.querySelectorAll('.action-checkbox').forEach(cb => cb.checked = false);
+  updateServiceItems();
+  updateNotes();
+  clearAllPhotos();
   document.getElementById('notes').value               = '';
   document.getElementById('syncStatus').textContent    = '';
   document.getElementById('recallBtn').style.display   = 'block';

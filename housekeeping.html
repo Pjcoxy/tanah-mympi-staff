@@ -5,817 +5,236 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Tanah Mympi — Housekeeping</title>
 <style>
-  :root {
-    --ocean:#1a4a5c; --teal:#2a7a8a; --sand:#f5ede0; --cream:#faf7f2;
-    --ink:#1a2a2f; --muted:#6b8a91; --border:#d9cfc4;
-    --green:#2e7d52; --green-bg:#edf7f1;
-    --red:#c0392b; --red-bg:#fdf0ee; --gold:#c8963e;
-  }
-  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
-  body { font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-    background:var(--cream); color:var(--ink); min-height:100vh; }
-
-  /* ── LOGIN ── */
-  #loginScreen { display:flex; flex-direction:column; align-items:stretch;
-    min-height:100vh; width:100%; }
-  .login-hero { position:relative; width:100%; text-align:center;
-    padding:40px 24px 32px; overflow:hidden; min-height:200px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .login-hero-bg { position:absolute !important; inset:0; z-index:0;
-    background-color:#1a3d4f;
-    background-image:url('https://cdn.sanity.io/images/qh4rmfog/production/37869edd8cc9ba24fc89dd511704d182331aad10-4000x2667.jpg?w=800&fit=max&auto=format');
-    background-size:cover; background-position:center; }
-  .login-hero-overlay { position:absolute !important; inset:0; z-index:1;
-    background:linear-gradient(to bottom, rgba(14,42,54,.72) 0%, rgba(20,58,74,.85) 100%); }
-  .login-eagle { position:relative; z-index:2; width:68px; height:auto; margin-bottom:14px;
-    filter:brightness(0) invert(1); }
-  .login-wordmark { position:relative; z-index:2; width:180px; height:auto; margin-bottom:10px;
-    filter:brightness(0) invert(1); opacity:.9; }
-  .login-hero p { position:relative; z-index:2; color:rgba(255,255,255,.65);
-    font-size:.78rem; margin-top:2px; text-transform:uppercase; letter-spacing:3px; }
-  .login-body { padding:28px 24px 48px; width:100%; display:flex;
-    flex-direction:column; align-items:center; background:var(--cream); flex:1; }
-  .login-card { background:#fff; border:1px solid var(--border); border-radius:16px;
-    padding:28px 24px; width:100%; max-width:360px; }
-  .login-card label { display:block; font-size:.72rem; font-weight:700;
-    text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:6px; }
-  .login-card select, .login-card input { width:100%; padding:12px 14px;
-    border:1.5px solid var(--border); border-radius:8px; font-size:1rem;
-    font-family:inherit; color:var(--ink); outline:none; margin-bottom:18px;
-    transition:border-color .15s; background:#fff; }
-  .login-card select:focus, .login-card input:focus { border-color:var(--teal); }
-  .pin-input { text-align:center; font-size:1.4rem; font-weight:700; letter-spacing:6px; }
-  .btn-login { width:100%; padding:15px; background:var(--ocean); color:#fff;
-    border:none; border-radius:10px; font-size:1rem; font-weight:700;
-    font-family:inherit; cursor:pointer; transition:background .15s; }
-  .btn-login:disabled { background:var(--muted); cursor:not-allowed; }
-  .login-error { color:var(--red); font-size:.85rem; text-align:center;
-    margin-top:12px; display:none; }
-  .login-timeout { background:var(--red-bg); border:1px solid #f5c6c2;
-    border-radius:8px; padding:10px 14px; font-size:.85rem; color:var(--red);
-    text-align:center; margin-bottom:18px; display:none; }
-  .login-loading { color:var(--muted); font-size:.82rem; text-align:center;
-    margin-top:10px; display:none; }
-
-  /* ── HEADER ── */
-  header { background:var(--ocean); color:#fff; padding:14px 16px;
-    position:sticky; top:0; z-index:10; box-shadow:0 2px 8px rgba(0,0,0,.2); }
-  .header-top { display:flex; align-items:center; justify-content:space-between; }
-  .brand { font-size:.95rem; font-weight:700; }
-  .brand span { display:block; font-size:.68rem; font-weight:400;
-    opacity:.7; letter-spacing:1.5px; text-transform:uppercase; }
-  .header-right { display:flex; align-items:center; gap:12px; }
-  .staff-badge { font-size:.75rem; background:rgba(255,255,255,.15);
-    padding:5px 10px; border-radius:999px; }
-  .btn-logout { font-size:.72rem; color:rgba(255,255,255,.6); background:none;
-    border:1px solid rgba(255,255,255,.25); border-radius:999px; padding:5px 10px;
-    cursor:pointer; font-family:inherit; }
-  .progress-bar { height:3px; background:rgba(255,255,255,.2); margin-top:10px;
-    border-radius:999px; overflow:hidden; }
-  .progress-fill { height:100%; background:#7dd8e8; border-radius:999px; transition:width .3s ease; }
-
-  /* ── META ── */
-  .meta { background:#fff; border-bottom:1px solid var(--border);
-    padding:12px 16px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .field label { display:block; font-size:.68rem; font-weight:700;
-    text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:4px; }
-  .field select { width:100%; padding:9px 11px; border:1.5px solid var(--border);
-    border-radius:8px; font-size:.92rem; color:var(--ink); font-family:inherit;
-    outline:none; transition:border-color .15s; background:#fff; }
-  .field select:focus { border-color:var(--teal); }
-  .field.full { grid-column:1/-1; }
-
-  /* ── SECTIONS ── */
-  .section { margin:12px 12px 0; border-radius:12px; overflow:hidden;
-    border:1px solid var(--border); background:#fff; }
-  .section-head { background:var(--sand); padding:10px 14px;
-    display:flex; align-items:center; justify-content:space-between; }
-  .section-head h2 { font-size:.78rem; font-weight:800; text-transform:uppercase;
-    letter-spacing:1.2px; color:var(--ocean); }
-  .section-count { font-size:.72rem; color:var(--muted); font-weight:600; }
-  .item { display:flex; align-items:center; gap:12px; padding:13px 14px;
-    border-top:1px solid var(--border); cursor:pointer; transition:background .12s;
-    user-select:none; }
-  .item:active { background:var(--sand); }
-  .item.checked { background:var(--green-bg); }
-  .checkbox { width:24px; height:24px; flex:0 0 24px; border-radius:50%;
-    border:2px solid var(--border); display:flex; align-items:center;
-    justify-content:center; transition:all .15s; background:#fff; }
-  .item.checked .checkbox { background:var(--green); border-color:var(--green); }
-  .tick { display:none; color:#fff; font-size:13px; font-weight:900; }
-  .item.checked .tick { display:block; }
-  .item-label { font-size:.92rem; flex:1; line-height:1.3; }
-  .item.checked .item-label { color:var(--green); }
-  .item.na { opacity:.35; pointer-events:none; }
-  .item.na .item-label::after { content:' — N/A'; font-size:.78em; color:var(--muted); }
-  .flag-row { padding:13px 14px; border-top:1px solid var(--border);
-    display:flex; align-items:center; justify-content:space-between; }
-  .flag-row label { font-size:.92rem; }
-  .toggle { position:relative; width:46px; height:24px; }
-  .toggle input { opacity:0; width:0; height:0; }
-  .slider { position:absolute; inset:0; background:var(--border);
-    border-radius:999px; cursor:pointer; transition:.2s; }
-  .slider:before { content:''; position:absolute; width:18px; height:18px;
-    left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
-  input:checked + .slider { background:var(--red); }
-  input:checked + .slider:before { transform:translateX(22px); }
-  .notes-wrap { padding:12px 14px; border-top:1px solid var(--border); }
-  .notes-wrap label { display:block; font-size:.68rem; font-weight:700;
-    text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:5px; }
-  .notes-wrap textarea { width:100%; padding:9px 11px; border:1.5px solid var(--border);
-    border-radius:8px; font-size:.88rem; font-family:inherit; resize:none;
-    height:72px; outline:none; transition:border-color .15s; }
-  .notes-wrap textarea:focus { border-color:var(--teal); }
-
-  /* ── SUBMIT ── */
-  .submit-wrap { padding:16px 12px 40px; }
-  .btn-submit { width:100%; padding:16px; background:var(--ocean); color:#fff;
-    border:none; border-radius:12px; font-size:1rem; font-weight:700;
-    font-family:inherit; cursor:pointer; transition:background .15s; }
-  .btn-submit:disabled { background:var(--muted); cursor:not-allowed; }
-  .sync-status { text-align:center; font-size:.75rem; color:var(--muted);
-    margin-top:8px; min-height:18px; }
-
-  /* ── SUCCESS ── */
-  .success { display:none; flex-direction:column; align-items:center;
-    justify-content:center; min-height:100vh; padding:40px 20px; text-align:center; }
-  .success.show { display:flex; }
-  .success-icon { width:72px; height:72px; background:var(--green-bg);
-    border-radius:50%; display:flex; align-items:center;
-    justify-content:center; font-size:2.2rem; margin-bottom:20px; }
-  .success h1 { font-size:1.4rem; color:var(--ocean); margin-bottom:8px; }
-  .summary { background:#fff; border:1px solid var(--border); border-radius:12px;
-    padding:14px 18px; width:100%; max-width:360px; margin:16px 0; text-align:left; }
-  .summary-row { display:flex; justify-content:space-between; font-size:.88rem;
-    padding:5px 0; border-bottom:1px solid var(--border); gap:12px; }
-  .summary-row:last-child { border-bottom:none; }
-  .summary-row span { color:var(--muted); flex-shrink:0; }
-  .summary-row b { color:var(--ink); text-align:right; }
-  .sync-badge { font-size:.78rem; padding:4px 12px; border-radius:999px; margin-bottom:4px; }
-  .sync-badge.ok { background:var(--green-bg); color:var(--green); }
-  .sync-badge.offline { background:#fff8e6; color:var(--gold); }
-  .btn-recall { width:100%; max-width:360px; padding:14px;
-    background:var(--red-bg); color:var(--red); border:1.5px solid #f5c6c2;
-    border-radius:10px; font-size:.88rem; font-weight:700;
-    font-family:inherit; cursor:pointer; margin-bottom:10px; }
-  .btn-recall:disabled { opacity:.4; cursor:not-allowed; }
-  .recall-note { font-size:.72rem; color:var(--muted); margin-bottom:16px; }
-  .btn-new { padding:14px 32px; background:var(--ocean); color:#fff;
-    border:none; border-radius:10px; font-size:.95rem; font-weight:700;
-    font-family:inherit; cursor:pointer; }
-
-  /* ── OFFLINE BANNER ── */
-  .offline-banner { background:#fff8e6; border-bottom:1px solid #f0d88a;
-    padding:8px 16px; font-size:.8rem; color:#7a5c00; text-align:center; display:none; }
-  .offline-banner.show { display:block; }
-
-  #formScreen { display:none; }
+:root{--ocean:#1a4a5c;--teal:#2a7a8a;--sand:#f5ede0;--cream:#faf7f2;--ink:#1a2a2f;--muted:#6b8a91;--border:#d9cfc4;--green:#2e7d52;--green-bg:#edf7f1;--red:#c0392b;--red-bg:#fdf0ee;--gold:#c8963e}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+#loginScreen{display:flex;flex-direction:column;align-items:stretch;min-height:100vh;width:100%}
+.login-hero{position:relative;width:100%;text-align:center;padding:40px 24px 32px;overflow:hidden;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.login-hero-bg{position:absolute!important;inset:0;z-index:0;background-color:#1a3d4f;background-image:url('https://cdn.sanity.io/images/qh4rmfog/production/37869edd8cc9ba24fc89dd511704d182331aad10-4000x2667.jpg?w=800&fit=max&auto=format');background-size:cover;background-position:center}
+.login-hero-overlay{position:absolute!important;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(14,42,54,.72)0%,rgba(20,58,74,.85)100%)}
+.login-eagle{position:relative;z-index:2;width:68px;height:auto;margin-bottom:14px;filter:brightness(0)invert(1)}
+.login-wordmark{position:relative;z-index:2;width:180px;height:auto;margin-bottom:10px;filter:brightness(0)invert(1);opacity:.9}
+.login-hero p{position:relative;z-index:2;color:rgba(255,255,255,.65);font-size:.78rem;margin-top:2px;text-transform:uppercase;letter-spacing:3px}
+.login-body{padding:28px 24px 48px;width:100%;display:flex;flex-direction:column;align-items:center;background:var(--cream);flex:1}
+.login-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:28px 24px;width:100%;max-width:360px}
+.login-card label{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+.login-card select,.login-card input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;color:var(--ink);outline:none;margin-bottom:18px;transition:border-color .15s;background:#fff}
+.login-card select:focus,.login-card input:focus{border-color:var(--teal)}
+.pin-input{text-align:center;font-size:1.4rem;font-weight:700;letter-spacing:6px}
+.btn-login{width:100%;padding:15px;background:var(--ocean);color:#fff;border:none;border-radius:10px;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s}
+.btn-login:disabled{background:var(--muted);cursor:not-allowed}
+.login-error{color:var(--red);font-size:.85rem;text-align:center;margin-top:12px;display:none}
+.login-timeout{background:var(--red-bg);border:1px solid #f5c6c2;border-radius:8px;padding:10px 14px;font-size:.85rem;color:var(--red);text-align:center;margin-bottom:18px;display:none}
+.login-loading{color:var(--muted);font-size:.82rem;text-align:center;margin-top:10px;display:none}
+header{background:var(--ocean);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:.95rem;font-weight:700}
+.brand span{display:block;font-size:.68rem;font-weight:400;opacity:.7;letter-spacing:1.5px;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:12px}
+.staff-badge{font-size:.75rem;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:999px}
+.btn-logout{font-size:.72rem;color:rgba(255,255,255,.6);background:none;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 10px;cursor:pointer;font-family:inherit}
+.progress-bar{height:3px;background:rgba(255,255,255,.2);margin-top:10px;border-radius:999px;overflow:hidden}
+.progress-fill{height:100%;background:#7dd8e8;border-radius:999px;transition:width .3s ease}
+.meta{background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+.field select{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:.92rem;color:var(--ink);font-family:inherit;outline:none;transition:border-color .15s;background:#fff}
+.field select:focus{border-color:var(--teal)}
+.field.full{grid-column:1/-1}
+.section{margin:12px 12px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#fff}
+.section-head{background:var(--sand);padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.section-head h2{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--ocean)}
+.section-count{font-size:.72rem;color:var(--muted);font-weight:600}
+.item{display:flex;align-items:center;gap:12px;padding:13px 14px;border-top:1px solid var(--border);cursor:pointer;transition:background .12s;user-select:none}
+.item:active{background:var(--sand)}
+.item.checked{background:var(--green-bg)}
+.checkbox{width:24px;height:24px;flex:0 0 24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .15s;background:#fff}
+.item.checked .checkbox{background:var(--green);border-color:var(--green)}
+.tick{display:none;color:#fff;font-size:13px;font-weight:900}
+.item.checked .tick{display:block}
+.item-label{font-size:.92rem;flex:1;line-height:1.3}
+.item.checked .item-label{color:var(--green)}
+.item.na{opacity:.35;pointer-events:none}
+.item.na .item-label::after{content:' — N/A';font-size:.78em;color:var(--muted)}
+.flag-row{padding:13px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.flag-row label{font-size:.92rem}
+.toggle{position:relative;width:46px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--border);border-radius:999px;cursor:pointer;transition:.2s}
+.slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+input:checked+.slider{background:var(--red)}
+input:checked+.slider:before{transform:translateX(22px)}
+.notes-wrap{padding:12px 14px;border-top:1px solid var(--border)}
+.notes-wrap label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:5px}
+.notes-wrap textarea{width:100%;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;font-family:inherit;resize:none;height:72px;outline:none;transition:border-color .15s}
+.notes-wrap textarea:focus{border-color:var(--teal)}
+.submit-wrap{padding:16px 12px 40px}
+.btn-submit{width:100%;padding:16px;background:var(--ocean);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s}
+.btn-submit:disabled{background:var(--muted);cursor:not-allowed}
+.sync-status{text-align:center;font-size:.75rem;color:var(--muted);margin-top:8px;min-height:18px}
+.success{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center}
+.success.show{display:flex}
+.success-icon{width:72px;height:72px;background:var(--green-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin-bottom:20px}
+.success h1{font-size:1.4rem;color:var(--ocean);margin-bottom:8px}
+.summary{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;width:100%;max-width:360px;margin:16px 0;text-align:left}
+.summary-row{display:flex;justify-content:space-between;font-size:.88rem;padding:5px 0;border-bottom:1px solid var(--border);gap:12px}
+.summary-row:last-child{border-bottom:none}
+.summary-row span{color:var(--muted);flex-shrink:0}
+.summary-row b{color:var(--ink);text-align:right}
+.sync-badge{font-size:.78rem;padding:4px 12px;border-radius:999px;margin-bottom:4px}
+.sync-badge.ok{background:var(--green-bg);color:var(--green)}
+.sync-badge.offline{background:#fff8e6;color:var(--gold)}
+.btn-recall{width:100%;max-width:360px;padding:14px;background:var(--red-bg);color:var(--red);border:1.5px solid #f5c6c2;border-radius:10px;font-size:.88rem;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:10px}
+.btn-recall:disabled{opacity:.4;cursor:not-allowed}
+.recall-note{font-size:.72rem;color:var(--muted);margin-bottom:16px}
+.btn-new{padding:14px 32px;background:var(--ocean);color:#fff;border:none;border-radius:10px;font-size:.95rem;font-weight:700;font-family:inherit;cursor:pointer}
+.offline-banner{background:#fff8e6;border-bottom:1px solid #f0d88a;padding:8px 16px;font-size:.8rem;color:#7a5c00;text-align:center;display:none}
+.offline-banner.show{display:block}
+#formScreen{display:none}
 </style>
 </head>
 <body>
-
 <script>
-const CONFIG = {
-  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbwcLK-X6qqh75VZQov3bXOgZj9CTSt4wG_GNngnGPxB-i2U_iMjaJzqbLwKuULZiGUQxA/exec',
-  TIMEOUT_MINS: 20,
-  ROOMS: [
-    '101','102','103','104','105',
-    '201','202','203','204','205',
-    'Villa 1','Villa 2','Villa 3',
-    'Suite A','Suite B'
-  ]
-};
+const CONFIG={SHEETS_URL:'https://script.google.com/macros/s/AKfycbwcLK-X6qqh75VZQov3bXOgZj9CTSt4wG_GNngnGPxB-i2U_iMjaJzqbLwKuULZiGUQxA/exec',TIMEOUT_MINS:20,ROOMS:['101','102','103','104','105','201','202','203','204','205','Villa 1','Villa 2','Villa 3','Suite A','Suite B']};
 </script>
-
-<!-- ══ LOGIN SCREEN ══ -->
 <div id="loginScreen">
-  <div class="login-hero">
-    <div class="login-hero-bg"></div>
-    <div class="login-hero-overlay"></div>
-    <img class="login-wordmark" src="https://cdn.sanity.io/images/qh4rmfog/production/71e33181ceeb9567bf879207dfad5898d25af4e1-471x67.png?w=300&fit=max&auto=format" alt="Tanah Mympi"/>
-    <p>Housekeeping</p>
-  </div>
-  <div class="login-body">
-  <div class="login-card">
-    <div class="login-timeout" id="timeoutMsg">
-      Session timed out after inactivity. Please sign in again.
-    </div>
-    <label>Staff Name</label>
-    <select id="loginName">
-      <option value="">Loading staff list…</option>
-    </select>
-    <label>PIN</label>
-    <input type="password" id="loginPin" inputmode="numeric" maxlength="4"
-           class="pin-input" placeholder="••••"
-           autocomplete="one-time-code" data-lpignore="true" data-form-type="other"
-           onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
-    <div class="login-error" id="loginError">Incorrect PIN — please try again.</div>
-    <div class="login-loading" id="loginLoading">Signing in…</div>
-  </div>
-  </div>
+<div class="login-hero">
+<div class="login-hero-bg"></div>
+<div class="login-hero-overlay"></div>
+<img class="login-wordmark" src="https://cdn.sanity.io/images/qh4rmfog/production/71e33181ceeb9567bf879207dfad5898d25af4e1-471x67.png?w=300&fit=max&auto=format" alt="Tanah Mympi"/>
+<p>Housekeeping</p>
 </div>
-
-<!-- ══ OFFLINE BANNER ══ -->
-<div class="offline-banner" id="offlineBanner">
-  ⚠️ You're offline — checklist will save locally and sync when connection returns.
+<div class="login-body">
+<div class="login-card">
+<div class="login-timeout" id="timeoutMsg">Session timed out after inactivity. Please sign in again.</div>
+<label>Staff Name</label>
+<select id="loginName"><option value="">Loading staff list…</option></select>
+<label>PIN</label>
+<input type="password" id="loginPin" inputmode="numeric" maxlength="4" class="pin-input" placeholder="••••" autocomplete="one-time-code" data-lpignore="true" data-form-type="other" onkeydown="if(event.key==='Enter')doLogin()"/>
+<button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
+<div class="login-error" id="loginError">Incorrect PIN — please try again.</div>
+<div class="login-loading" id="loginLoading">Signing in…</div>
 </div>
-
-<!-- ══ FORM SCREEN ══ -->
+</div>
+</div>
+<div class="offline-banner" id="offlineBanner">⚠️ You're offline — checklist will save locally and sync when connection returns.</div>
 <div id="formScreen">
-  <header>
-    <div class="header-top">
-      <div class="brand">Tanah Mympi <span>Housekeeping</span></div>
-      <div class="header-right">
-        <span class="staff-badge" id="staffBadge"></span>
-        <button class="btn-logout" onclick="doLogout()">Sign out</button>
-      </div>
-    </div>
-    <div class="progress-bar">
-      <div class="progress-fill" id="progressFill" style="width:0%"></div>
-    </div>
-  </header>
-
-  <div class="meta">
-    <div class="field full">
-      <label>Step 1: Select Room *</label>
-      <select id="roomNum" onchange="enableServiceType()"></select>
-    </div>
-
-    <div id="serviceTypeStep" class="field full" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
-      <label>Step 2: Service Type *</label>
-      <select id="serviceType" onchange="updateServiceItems()">
-        <option value="">Choose service type…</option>
-        <option value="full">Full Clean (checkout)</option>
-        <option value="refresh">Refresh (stay-over)</option>
-        <option value="turndown">Turndown Service</option>
-        <option value="inspection">Inspection Only</option>
-      </select>
-    </div>
-
-    <div id="progressStep" class="field" style="display:none;margin-top:10px;">
-      <label>Progress</label>
-      <div style="padding:9px 0; font-size:1.1rem; font-weight:800; color:var(--ocean)">
-        <span id="pct">0%</span>
-        <span style="font-size:.75rem;font-weight:400;color:var(--muted)" id="remaining"></span>
-      </div>
-    </div>
-  </div>
-
-  <div id="checklistSteps" style="display:none;">
-    <div style="padding:14px;background:var(--sand);border-radius:8px;margin-bottom:12px;margin-left:12px;margin-right:12px;font-size:.85rem;color:var(--ocean);font-weight:600;">Step 3: Complete All Tasks</div>
-
-    <!-- BEDROOM -->
-    <div class="section">
-    <div class="section-head"><h2>Bedroom</h2><span class="section-count" id="count-bedroom">0 / 6</span></div>
-    <div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Beds made / linen changed</div></div>
-    <div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Pillows fluffed &amp; arranged</div></div>
-    <div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floors vacuumed / swept</div></div>
-    <div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Surfaces dusted &amp; wiped</div></div>
-    <div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Bins emptied &amp; relined</div></div>
-    <div class="item" data-section="bedroom" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">A/C set to 23°C &amp; working</div></div>
-  </div>
-
-  <!-- BATHROOM -->
-  <div class="section">
-    <div class="section-head"><h2>Bathroom</h2><span class="section-count" id="count-bathroom">0 / 7</span></div>
-    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Toilet cleaned &amp; sanitised</div></div>
-    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Shower / bath scrubbed</div></div>
-    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Vanity &amp; basin wiped</div></div>
-    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Mirrors polished</div></div>
-    <div class="item" data-section="bathroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Fresh towels set out</div></div>
-    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Amenities restocked (soap, shampoo, etc.)</div></div>
-    <div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floor mopped &amp; dry</div></div>
-  </div>
-
-  <!-- MINIBAR -->
-  <div class="section">
-    <div class="section-head"><h2>Minibar &amp; Amenities</h2><span class="section-count" id="count-minibar">0 / 4</span></div>
-    <div class="item" data-section="minibar" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Minibar checked &amp; restocked</div></div>
-    <div class="item" data-section="minibar" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Tea &amp; coffee station replenished</div></div>
-    <div class="item" data-section="minibar" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Safe locked &amp; reset to 0000</div></div>
-    <div class="item" data-section="minibar" data-services="full" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Welcome items placed (checkout rooms only)</div></div>
-  </div>
-
-  <!-- FINAL -->
-  <div class="section">
-    <div class="section-head"><h2>Final Checks</h2><span class="section-count" id="count-final">0 / 4</span></div>
-    <div class="item" data-section="final" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Windows &amp; doors locked / secured</div></div>
-    <div class="item" data-section="final" data-services="full refresh turndown inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Lights off (except entry)</div></div>
-    <div class="item" data-section="final" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">DND sign removed / door card updated</div></div>
-    <div class="item" data-section="final" data-services="full refresh turndown inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Room visually inspected before leaving</div></div>
-    <div class="notes-wrap">
-      <label>Action Required</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
-          <input type="checkbox" class="action-checkbox" value="Maintenance issue" onchange="updateNotes()" style="display:none"/>
-          <span style="font-size:2rem;">🔧</span>
-          <span style="font-size:.85rem;font-weight:600;">Maintenance</span>
-        </label>
-        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
-          <input type="checkbox" class="action-checkbox" value="Damage" onchange="updateNotes()" style="display:none"/>
-          <span style="font-size:2rem;">⚠️</span>
-          <span style="font-size:.85rem;font-weight:600;">Damage</span>
-        </label>
-        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
-          <input type="checkbox" class="action-checkbox" value="Missing item" onchange="updateNotes()" style="display:none"/>
-          <span style="font-size:2rem;">📋</span>
-          <span style="font-size:.85rem;font-weight:600;">Missing Item</span>
-        </label>
-        <label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;">
-          <input type="checkbox" class="action-checkbox" value="Other" onchange="updateNotes()" style="display:none"/>
-          <span style="font-size:2rem;">❓</span>
-          <span style="font-size:.85rem;font-weight:600;">Other</span>
-        </label>
-      </div>
-      <label>Notes <span id="notesRequired" style="color:var(--red);display:none">*</span></label>
-      <textarea id="notes" placeholder="Describe the issue…"></textarea>
-    </div>
-  </div>
-  </div>
-
-  <div class="submit-wrap">
-    <button class="btn-submit" id="submitBtn" onclick="submitForm()" disabled>
-      Complete All Items to Sign Off
-    </button>
-    <div class="sync-status" id="syncStatus"></div>
-  </div>
+<header>
+<div class="header-top">
+<div class="brand">Tanah Mympi <span>Housekeeping</span></div>
+<div class="header-right">
+<span class="staff-badge" id="staffBadge"></span>
+<button class="btn-logout" onclick="doLogout()">Sign out</button>
 </div>
-
-<!-- ══ SUCCESS SCREEN ══ -->
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</header>
+<div class="meta">
+<div class="field full"><label>Step 1: Select Room *</label><select id="roomNum" onchange="enableServiceType()"></select></div>
+<div id="serviceTypeStep" class="field full" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+<label>Step 2: Service Type *</label>
+<select id="serviceType" onchange="updateServiceItems()">
+<option value="">Choose service type…</option>
+<option value="full">Full Clean (checkout)</option>
+<option value="refresh">Refresh (stay-over)</option>
+<option value="turndown">Turndown Service</option>
+<option value="inspection">Inspection Only</option>
+</select>
+</div>
+<div id="progressStep" class="field" style="display:none;margin-top:10px;">
+<label>Progress</label>
+<div style="padding:9px 0;font-size:1.1rem;font-weight:800;color:var(--ocean)">
+<span id="pct">0%</span>
+<span style="font-size:.75rem;font-weight:400;color:var(--muted)" id="remaining"></span>
+</div>
+</div>
+</div>
+<div id="checklistSteps" style="display:none;">
+<div style="padding:14px;background:var(--sand);border-radius:8px;margin-bottom:12px;margin-left:12px;margin-right:12px;font-size:.85rem;color:var(--ocean);font-weight:600;">Step 3: Complete All Tasks</div>
+<div class="section">
+<div class="section-head"><h2>Bedroom</h2><span class="section-count" id="count-bedroom">0 / 6</span></div>
+<div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Beds made / linen changed</div></div>
+<div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Pillows fluffed &amp; arranged</div></div>
+<div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floors vacuumed / swept</div></div>
+<div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Surfaces dusted &amp; wiped</div></div>
+<div class="item" data-section="bedroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Bins emptied &amp; relined</div></div>
+<div class="item" data-section="bedroom" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">A/C set to 23°C &amp; working</div></div>
+</div>
+<div class="section">
+<div class="section-head"><h2>Bathroom</h2><span class="section-count" id="count-bathroom">0 / 7</span></div>
+<div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Toilet cleaned &amp; sanitised</div></div>
+<div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Shower / bath scrubbed</div></div>
+<div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Vanity &amp; basin wiped</div></div>
+<div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Mirrors polished</div></div>
+<div class="item" data-section="bathroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Fresh towels set out</div></div>
+<div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Amenities restocked (soap, shampoo, etc.)</div></div>
+<div class="item" data-section="bathroom" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Floor mopped &amp; dry</div></div>
+</div>
+<div class="section">
+<div class="section-head"><h2>Minibar &amp; Amenities</h2><span class="section-count" id="count-minibar">0 / 4</span></div>
+<div class="item" data-section="minibar" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Minibar checked &amp; restocked</div></div>
+<div class="item" data-section="minibar" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Tea &amp; coffee station replenished</div></div>
+<div class="item" data-section="minibar" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Safe locked &amp; reset to 0000</div></div>
+<div class="item" data-section="minibar" data-services="full" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Welcome items placed (checkout rooms only)</div></div>
+</div>
+<div class="section">
+<div class="section-head"><h2>Final Checks</h2><span class="section-count" id="count-final">0 / 4</span></div>
+<div class="item" data-section="final" data-services="full refresh inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Windows &amp; doors locked / secured</div></div>
+<div class="item" data-section="final" data-services="full refresh turndown inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Lights off (except entry)</div></div>
+<div class="item" data-section="final" data-services="full refresh" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">DND sign removed / door card updated</div></div>
+<div class="item" data-section="final" data-services="full refresh turndown inspection" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Room visually inspected before leaving</div></div>
+<div class="notes-wrap">
+<label>Action Required</label>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+<label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;"><input type="checkbox" class="action-checkbox" value="Maintenance issue" onchange="updateNotes()" style="display:none"/><span style="font-size:2rem;">🔧</span><span style="font-size:.85rem;font-weight:600;">Maintenance</span></label>
+<label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;"><input type="checkbox" class="action-checkbox" value="Damage" onchange="updateNotes()" style="display:none"/><span style="font-size:2rem;">⚠️</span><span style="font-size:.85rem;font-weight:600;">Damage</span></label>
+<label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;"><input type="checkbox" class="action-checkbox" value="Missing item" onchange="updateNotes()" style="display:none"/><span style="font-size:2rem;">📋</span><span style="font-size:.85rem;font-weight:600;">Missing Item</span></label>
+<label style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;padding:14px;border:1.5px solid var(--border);border-radius:8px;background:#fff;transition:all .15s;"><input type="checkbox" class="action-checkbox" value="Other" onchange="updateNotes()" style="display:none"/><span style="font-size:2rem;">❓</span><span style="font-size:.85rem;font-weight:600;">Other</span></label>
+</div>
+<label>Notes <span id="notesRequired" style="color:var(--red);display:none">*</span></label>
+<textarea id="notes" placeholder="Describe the issue…"></textarea>
+</div>
+</div>
+</div>
+<div class="submit-wrap">
+<button class="btn-submit" id="submitBtn" onclick="submitForm()" disabled>Complete All Items to Sign Off</button>
+<div class="sync-status" id="syncStatus"></div>
+</div>
+</div>
 <div class="success" id="successScreen">
-  <div class="success-icon">✓</div>
-  <h1>Room Signed Off</h1>
-  <div class="sync-badge" id="syncBadge"></div>
-  <div class="summary" id="summaryBox"></div>
-
-  <button class="btn-recall" id="recallBtn" onclick="recallSubmission()">
-    Made a mistake? Recall &amp; Fix (5:00)
-  </button>
-  <div class="recall-note" id="recallNote">This will mark the submission as recalled so you can redo it.</div>
-
-  <button class="btn-new" onclick="resetForm()">Start Next Room</button>
+<div class="success-icon">✓</div>
+<h1>Room Signed Off</h1>
+<div class="sync-badge" id="syncBadge"></div>
+<div class="summary" id="summaryBox"></div>
+<button class="btn-recall" id="recallBtn" onclick="recallSubmission()">Made a mistake? Recall &amp; Fix (5:00)</button>
+<div class="recall-note" id="recallNote">This will mark the submission as recalled so you can redo it.</div>
+<button class="btn-new" onclick="resetForm()">Start Next Room</button>
 </div>
-
 <script>
-// ── State ──
-let currentStaff = null;
-let timeoutTimer = null;
-let lastSubmission = null;   // { id, room, serviceType, maint, notes }
-let recallTimerId = null;
-let recallSecsLeft = 0;
-
-// ── Boot ──
-(function init() {
-  // Populate room dropdown
-  const rsel = document.getElementById('roomNum');
-  rsel.innerHTML = '<option value="">Select room…</option>';
-  CONFIG.ROOMS.forEach(r => {
-    const o = document.createElement('option');
-    o.value = r; o.textContent = r;
-    rsel.appendChild(o);
-  });
-
-  // Restore session
-  const saved = sessionStorage.getItem('hk-staff');
-  if (saved) { showForm(saved); return; }
-
-  // Load staff names for dropdown
-  loadStaffNames();
-
-  // Online / offline
-  updateOnlineStatus();
-  window.addEventListener('online',  updateOnlineStatus);
-  window.addEventListener('offline', updateOnlineStatus);
-  window.addEventListener('online',  retrySyncs);
-})();
-
-// ── Load staff names from Apps Script ──
-async function loadStaffNames() {
-  const sel = document.getElementById('loginName');
-  const cached = localStorage.getItem('hk-staff-names');
-
-  function populate(names) {
-    sel.innerHTML = '<option value="">Select your name…</option>';
-    names.forEach(n => {
-      const o = document.createElement('option');
-      o.value = n; o.textContent = n;
-      sel.appendChild(o);
-    });
-  }
-
-  // Use cache immediately if available
-  if (cached) populate(JSON.parse(cached));
-
-  // Fetch fresh list
-  try {
-    const res  = await fetch(CONFIG.SHEETS_URL + '?action=staff');
-    const data = await res.json();
-    if (data.names && data.names.length) {
-      populate(data.names);
-      localStorage.setItem('hk-staff-names', JSON.stringify(data.names));
-    }
-  } catch {
-    if (!cached) {
-      sel.innerHTML = '<option value="">Type your name below</option>';
-      // Fallback: show a text input instead
-      const txt = document.createElement('input');
-      txt.type = 'text'; txt.id = 'loginNameText';
-      txt.placeholder = 'Your name…';
-      txt.style.cssText = 'width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;color:var(--ink);outline:none;margin-bottom:18px;';
-      sel.parentNode.insertBefore(txt, sel.nextSibling);
-      sel.style.display = 'none';
-    }
-  }
-}
-
-// ── Auth ──
-async function doLogin() {
-  const nameEl = document.getElementById('loginName');
-  const nameTxt = document.getElementById('loginNameText');
-  const name = (nameTxt ? nameTxt.value.trim() : nameEl.value);
-  const pin  = document.getElementById('loginPin').value.trim();
-
-  if (!name || !pin) return;
-
-  const btn = document.getElementById('loginBtn');
-  const errEl = document.getElementById('loginError');
-  const loadEl = document.getElementById('loginLoading');
-
-  btn.disabled = true;
-  errEl.style.display = 'none';
-  loadEl.style.display = 'block';
-
-  try {
-    const res  = await fetch(CONFIG.SHEETS_URL, {
-      method: 'POST',
-      body:   JSON.stringify({ action: 'login', name, pin })
-    });
-    const result = await res.json();
-
-    if (result.ok) {
-      logAccess({ event: 'LOGIN', staff: name, ts: now() });
-      showForm(name);
-    } else {
-      logAccess({ event: 'LOGIN_FAIL', staff: name || 'unknown', ts: now() });
-      errEl.textContent = 'Incorrect PIN — please try again.';
-      errEl.style.display = 'block';
-      document.getElementById('loginPin').value = '';
-    }
-  } catch {
-    errEl.textContent = 'Connection error — check your internet and try again.';
-    errEl.style.display = 'block';
-  } finally {
-    btn.disabled = false;
-    loadEl.style.display = 'none';
-  }
-}
-
-function showForm(name) {
-  currentStaff = name;
-  sessionStorage.setItem('hk-staff', name);
-  document.getElementById('loginScreen').style.display  = 'none';
-  document.getElementById('formScreen').style.display   = 'block';
-  document.getElementById('staffBadge').textContent     = name;
-  resetTimeout();
-  updateServiceItems();
-}
-
-function doLogout() {
-  logAccess({ event: 'LOGOUT', staff: currentStaff, ts: now() });
-  currentStaff = null;
-  sessionStorage.removeItem('hk-staff');
-  clearTimeout(timeoutTimer);
-  clearRecall();
-  document.getElementById('formScreen').style.display   = 'none';
-  document.getElementById('successScreen').classList.remove('show');
-  document.getElementById('loginScreen').style.display  = 'flex';
-  document.getElementById('loginPin').value = '';
-  document.getElementById('loginError').style.display   = 'none';
-  document.getElementById('timeoutMsg').style.display   = 'none';
-}
-
-function resetTimeout() {
-  clearTimeout(timeoutTimer);
-  timeoutTimer = setTimeout(() => {
-    logAccess({ event: 'TIMEOUT', staff: currentStaff, ts: now() });
-    document.getElementById('timeoutMsg').style.display = 'block';
-    doLogout();
-  }, CONFIG.TIMEOUT_MINS * 60 * 1000);
-}
-
-document.addEventListener('click',     resetTimeout);
-document.addEventListener('touchstart', resetTimeout);
-
-// ── Action required checkboxes ──
-function updateNotes() {
-  const checked = document.querySelectorAll('.action-checkbox:checked').length > 0;
-  const notesEl = document.getElementById('notes');
-  const reqSpan = document.getElementById('notesRequired');
-  const photoSection = document.getElementById('photoSection');
-
-  notesEl.style.borderColor = checked ? 'var(--red)' : 'var(--border)';
-  notesEl.style.background = checked ? '#fdf0ee' : '#fff';
-  reqSpan.style.display = checked ? 'inline' : 'none';
-
-  if (!checked) return;
-
-  // Highlight checked action boxes
-  document.querySelectorAll('.action-checkbox').forEach(cb => {
-    const label = cb.closest('label');
-    if (cb.checked) {
-      label.style.borderColor = 'var(--ocean)';
-      label.style.background = 'var(--sand)';
-    } else {
-      label.style.borderColor = 'var(--border)';
-      label.style.background = '#fff';
-    }
-  });
-}
-
-
-// ── Progressive disclosure ──
-function enableServiceType() {
-  const room = document.getElementById('roomNum').value;
-  const serviceStep = document.getElementById('serviceTypeStep');
-  serviceStep.style.display = room ? 'block' : 'none';
-
-  // Reset service type when room changes
-  document.getElementById('serviceType').value = '';
-  document.getElementById('checklistSteps').style.display = 'none';
-  document.getElementById('progressStep').style.display = 'none';
-}
-
-// ── Service type filter ──
-function updateServiceItems() {
-  const svc = document.getElementById('serviceType').value;
-  const checklistSteps = document.getElementById('checklistSteps');
-  const progressStep = document.getElementById('progressStep');
-
-  if (!svc) {
-    checklistSteps.style.display = 'none';
-    progressStep.style.display = 'none';
-    return;
-  }
-
-  checklistSteps.style.display = 'block';
-  progressStep.style.display = 'block';
-
-  document.querySelectorAll('.item[data-services]').forEach(item => {
-    const applies = item.dataset.services.split(' ').includes(svc);
-    item.classList.toggle('na', !applies);
-    if (!applies) item.classList.remove('checked');
-  });
-  updateProgress();
-}
-
-// ── Checklist ──
-function toggle(el) {
-  el.classList.toggle('checked');
-  updateProgress();
-}
-
-function updateProgress() {
-  const required = document.querySelectorAll('.item:not(.na)');
-  const checked  = document.querySelectorAll('.item:not(.na).checked');
-  const total    = required.length;
-  const done     = checked.length;
-  const pct      = total ? Math.round((done / total) * 100) : 100;
-  const left     = total - done;
-
-  document.getElementById('pct').textContent          = pct + '%';
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('remaining').textContent     = left > 0 ? `(${left} left)` : '';
-
-  ['bedroom','bathroom','minibar','final'].forEach(sec => {
-    const all  = document.querySelectorAll(`.item[data-section="${sec}"]:not(.na)`).length;
-    const done = document.querySelectorAll(`.item[data-section="${sec}"]:not(.na).checked`).length;
-    document.getElementById(`count-${sec}`).textContent = `${done} / ${all}`;
-  });
-
-  const btn = document.getElementById('submitBtn');
-  if (left === 0) {
-    btn.disabled = false; btn.textContent = 'Sign Off Room ✓';
-  } else {
-    btn.disabled = true;
-    btn.textContent = `Complete All Items to Sign Off (${left} remaining)`;
-  }
-}
-
-// ── Submit ──
-async function submitForm() {
-  const room = document.getElementById('roomNum').value;
-  if (!room) { alert('Please select a room number.'); return; }
-
-  const typeEl = document.getElementById('serviceType');
-  const actions = Array.from(document.querySelectorAll('.action-checkbox:checked')).map(c => c.value);
-  const notes  = document.getElementById('notes').value.trim();
-
-  if (actions.length > 0 && !notes) {
-    alert('Please describe the issue in the notes field.');
-    return;
-  }
-
-  const ts = now();
-
-  const payload = {
-    action:        'submit',
-    timestamp:     ts,
-    staff:         currentStaff,
-    room,
-    serviceType:   typeEl.options[typeEl.selectedIndex].text,
-    actionRequired: actions.length ? actions.join(', ') : 'None',
-    notes:         notes || '',
-    userAgent:     navigator.userAgent.slice(0, 80)
-  };
-
-  document.getElementById('summaryBox').innerHTML = `
-    <div class="summary-row"><span>Room</span><b>${room}</b></div>
-    <div class="summary-row"><span>Staff</span><b>${currentStaff}</b></div>
-    <div class="summary-row"><span>Service</span><b>${payload.serviceType}</b></div>
-    <div class="summary-row"><span>Time</span><b>${ts}</b></div>
-    ${payload.actionRequired !== 'None' ? `<div class="summary-row"><span>Action Required</span>
-      <b style="color:var(--red)">${payload.actionRequired}</b></div>` : ''}
-    ${notes ? `<div class="summary-row"><span>Notes</span><b style="font-size:.82rem">${notes}</b></div>` : ''}
-  `;
-
-  // Save last submission details for potential recall
-  lastSubmission = { room, serviceType: typeEl.value, actions, notes };
-
-  // Save locally always
-  saveLocally(payload);
-  logAccess({ event: 'SUBMIT', staff: currentStaff, room, ts });
-
-  // Sync to Google Sheets
-  document.getElementById('syncStatus').textContent = 'Syncing…';
-  const result  = await syncToSheets(payload);
-  const badge   = document.getElementById('syncBadge');
-  document.getElementById('syncStatus').textContent = '';
-
-  if (result && result.id) {
-    lastSubmission.id = result.id;
-    badge.className   = 'sync-badge ok';
-    badge.textContent = '✓ Synced to Google Sheets';
-    startRecallTimer();
-  } else {
-    badge.className   = 'sync-badge offline';
-    badge.textContent = '⚠ Saved locally — will sync when online';
-    // No recall option if not synced (no server-side ID)
-    document.getElementById('recallBtn').style.display  = 'none';
-    document.getElementById('recallNote').style.display = 'none';
-  }
-
-  document.getElementById('formScreen').style.display = 'none';
-  document.getElementById('successScreen').classList.add('show');
-}
-
-async function syncToSheets(payload) {
-  if (!CONFIG.SHEETS_URL || !navigator.onLine) return null;
-  try {
-    const res = await fetch(CONFIG.SHEETS_URL, {
-      method: 'POST', body: JSON.stringify(payload)
-    });
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
-
-// ── Recall ──
-function startRecallTimer() {
-  recallSecsLeft = 300;
-  document.getElementById('recallBtn').style.display  = 'block';
-  document.getElementById('recallNote').style.display = 'block';
-  document.getElementById('recallBtn').disabled       = false;
-  updateRecallBtn();
-  recallTimerId = setInterval(() => {
-    recallSecsLeft--;
-    updateRecallBtn();
-    if (recallSecsLeft <= 0) {
-      clearRecall();
-      document.getElementById('recallBtn').style.display  = 'none';
-      document.getElementById('recallNote').style.display = 'none';
-    }
-  }, 1000);
-}
-
-function updateRecallBtn() {
-  const m = Math.floor(recallSecsLeft / 60);
-  const s = String(recallSecsLeft % 60).padStart(2, '0');
-  document.getElementById('recallBtn').textContent = `Made a mistake? Recall & Fix (${m}:${s})`;
-}
-
-function clearRecall() {
-  clearInterval(recallTimerId);
-  recallTimerId  = null;
-  recallSecsLeft = 0;
-}
-
-async function recallSubmission() {
-  if (!lastSubmission || !lastSubmission.id) return;
-
-  const btn = document.getElementById('recallBtn');
-  btn.disabled    = true;
-  btn.textContent = 'Recalling…';
-
-  try {
-    const res    = await fetch(CONFIG.SHEETS_URL, {
-      method: 'POST',
-      body:   JSON.stringify({ action: 'recall', id: lastSubmission.id })
-    });
-    const result = await res.json();
-
-    if (result.ok) {
-      clearRecall();
-      logAccess({ event: 'RECALL', staff: currentStaff, id: lastSubmission.id, ts: now() });
-      // Return to form with room and service pre-filled
-      document.getElementById('successScreen').classList.remove('show');
-      document.getElementById('formScreen').style.display = 'block';
-      document.getElementById('roomNum').value      = lastSubmission.room;
-      document.getElementById('serviceType').value  = lastSubmission.serviceType;
-      lastSubmission.actions.forEach(action => {
-        document.querySelector(`.action-checkbox[value="${action}"]`).checked = true;
-      });
-      document.getElementById('notes').value        = lastSubmission.notes;
-      updateNotes();
-      // Reset all checklist items
-      document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
-      updateProgress();
-      window.scrollTo(0, 0);
-      lastSubmission = null;
-    } else {
-      btn.disabled    = false;
-      btn.textContent = 'Recall failed — contact your supervisor';
-    }
-  } catch {
-    btn.disabled    = false;
-    btn.textContent = 'Connection error — try again';
-  }
-}
-
-// ── Reset for next room ──
-function resetForm() {
-  clearRecall();
-  document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
-  document.getElementById('roomNum').value = '';
-  document.getElementById('serviceType').value = '';
-  document.querySelectorAll('.action-checkbox').forEach(cb => cb.checked = false);
-  document.getElementById('serviceTypeStep').style.display = 'none';
-  document.getElementById('checklistSteps').style.display = 'none';
-  document.getElementById('progressStep').style.display = 'none';
-  updateNotes();
-  document.getElementById('notes').value               = '';
-  document.getElementById('syncStatus').textContent    = '';
-  document.getElementById('recallBtn').style.display   = 'block';
-  document.getElementById('recallNote').style.display  = 'block';
-  document.getElementById('successScreen').classList.remove('show');
-  document.getElementById('formScreen').style.display  = 'block';
-  lastSubmission = null;
-  window.scrollTo(0, 0);
-}
-
-// ── Offline queue ──
-function saveLocally(payload) {
-  const log = JSON.parse(localStorage.getItem('hk-log') || '[]');
-  payload._synced = false;
-  log.push(payload);
-  localStorage.setItem('hk-log', JSON.stringify(log));
-}
-
-async function retrySyncs() {
-  if (!CONFIG.SHEETS_URL) return;
-  const log = JSON.parse(localStorage.getItem('hk-log') || '[]');
-  let changed = false;
-  for (const entry of log) {
-    if (!entry._synced) {
-      try {
-        const res = await fetch(CONFIG.SHEETS_URL, { method: 'POST', body: JSON.stringify(entry) });
-        if (res.ok) { entry._synced = true; changed = true; }
-      } catch {}
-    }
-  }
-  if (changed) localStorage.setItem('hk-log', JSON.stringify(log));
-}
-
-// ── Access log ──
-function logAccess(entry) {
-  const log = JSON.parse(localStorage.getItem('hk-access-log') || '[]');
-  log.push(entry);
-  if (log.length > 500) log.splice(0, log.length - 500);
-  localStorage.setItem('hk-access-log', JSON.stringify(log));
-}
-
-// ── Helpers ──
-function now() {
-  return new Date().toLocaleString('en-AU', {
-    day:'numeric', month:'short', year:'numeric',
-    hour:'2-digit', minute:'2-digit'
-  });
-}
-
-function updateOnlineStatus() {
-  document.getElementById('offlineBanner').classList.toggle('show', !navigator.onLine);
-}
+let currentStaff=null,timeoutTimer=null,lastSubmission=null,recallTimerId=null,recallSecsLeft=0;
+(function init(){const rsel=document.getElementById('roomNum');rsel.innerHTML='<option value="">Select room…</option>';CONFIG.ROOMS.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;rsel.appendChild(o)});const saved=sessionStorage.getItem('hk-staff');if(saved){showForm(saved);return}loadStaffNames();updateOnlineStatus();window.addEventListener('online',updateOnlineStatus);window.addEventListener('offline',updateOnlineStatus);window.addEventListener('online',retrySyncs)})();
+async function loadStaffNames(){const sel=document.getElementById('loginName'),cached=localStorage.getItem('hk-staff-names');function populate(names){sel.innerHTML='<option value="">Select your name…</option>';names.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.appendChild(o)})}if(cached)populate(JSON.parse(cached));try{const res=await fetch(CONFIG.SHEETS_URL+'?action=staff'),data=await res.json();if(data.names&&data.names.length){populate(data.names);localStorage.setItem('hk-staff-names',JSON.stringify(data.names))}}catch{if(!cached){sel.innerHTML='<option value="">Type your name below</option>';const txt=document.createElement('input');txt.type='text';txt.id='loginNameText';txt.placeholder='Your name…';txt.style.cssText='width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;color:var(--ink);outline:none;margin-bottom:18px;';sel.parentNode.insertBefore(txt,sel.nextSibling);sel.style.display='none'}}}
+async function doLogin(){const nameEl=document.getElementById('loginName'),nameTxt=document.getElementById('loginNameText'),name=nameTxt?nameTxt.value.trim():nameEl.value,pin=document.getElementById('loginPin').value.trim();if(!name||!pin)return;const btn=document.getElementById('loginBtn'),errEl=document.getElementById('loginError'),loadEl=document.getElementById('loginLoading');btn.disabled=true;errEl.style.display='none';loadEl.style.display='block';try{const res=await fetch(CONFIG.SHEETS_URL,{method:'POST',body:JSON.stringify({action:'login',name,pin})}),result=await res.json();if(result.ok){logAccess({event:'LOGIN',staff:name,ts:now()});showForm(name)}else{logAccess({event:'LOGIN_FAIL',staff:name||'unknown',ts:now()});errEl.textContent='Incorrect PIN — please try again.';errEl.style.display='block';document.getElementById('loginPin').value=''}}catch{errEl.textContent='Connection error — check your internet and try again.';errEl.style.display='block'}finally{btn.disabled=false;loadEl.style.display='none'}}
+function showForm(name){currentStaff=name;sessionStorage.setItem('hk-staff',name);document.getElementById('loginScreen').style.display='none';document.getElementById('formScreen').style.display='block';document.getElementById('staffBadge').textContent=name;resetTimeout();updateServiceItems()}
+function doLogout(){logAccess({event:'LOGOUT',staff:currentStaff,ts:now()});currentStaff=null;sessionStorage.removeItem('hk-staff');clearTimeout(timeoutTimer);clearRecall();document.getElementById('formScreen').style.display='none';document.getElementById('successScreen').classList.remove('show');document.getElementById('loginScreen').style.display='flex';document.getElementById('loginPin').value='';document.getElementById('loginError').style.display='none';document.getElementById('timeoutMsg').style.display='none'}
+function resetTimeout(){clearTimeout(timeoutTimer);timeoutTimer=setTimeout(()=>{logAccess({event:'TIMEOUT',staff:currentStaff,ts:now()});document.getElementById('timeoutMsg').style.display='block';doLogout()},CONFIG.TIMEOUT_MINS*60*1000)}
+document.addEventListener('click',resetTimeout);document.addEventListener('touchstart',resetTimeout);
+function updateNotes(){const checked=document.querySelectorAll('.action-checkbox:checked').length>0,notesEl=document.getElementById('notes'),reqSpan=document.getElementById('notesRequired');notesEl.style.borderColor=checked?'var(--red)':'var(--border)';notesEl.style.background=checked?'#fdf0ee':'#fff';reqSpan.style.display=checked?'inline':'none';if(!checked)return;document.querySelectorAll('.action-checkbox').forEach(cb=>{const label=cb.closest('label');if(cb.checked){label.style.borderColor='var(--ocean)';label.style.background='var(--sand)'}else{label.style.borderColor='var(--border)';label.style.background='#fff'}})}
+function enableServiceType(){const room=document.getElementById('roomNum').value,serviceStep=document.getElementById('serviceTypeStep');serviceStep.style.display=room?'block':'none';document.getElementById('serviceType').value='';document.getElementById('checklistSteps').style.display='none';document.getElementById('progressStep').style.display='none'}
+function updateServiceItems(){const svc=document.getElementById('serviceType').value,checklistSteps=document.getElementById('checklistSteps'),progressStep=document.getElementById('progressStep');if(!svc){checklistSteps.style.display='none';progressStep.style.display='none';return}checklistSteps.style.display='block';progressStep.style.display='block';document.querySelectorAll('.item[data-services]').forEach(item=>{const applies=item.dataset.services.split(' ').includes(svc);item.classList.toggle('na',!applies);if(!applies)item.classList.remove('checked')});updateProgress()}
+function toggle(el){el.classList.toggle('checked');updateProgress()}
+function updateProgress(){const required=document.querySelectorAll('.item:not(.na)'),checked=document.querySelectorAll('.item:not(.na).checked'),total=required.length,done=checked.length,pct=total?Math.round(done/total*100):100,left=total-done;document.getElementById('pct').textContent=pct+'%';document.getElementById('progressFill').style.width=pct+'%';document.getElementById('remaining').textContent=left>0?`(${left} left)`:'';['bedroom','bathroom','minibar','final'].forEach(sec=>{const all=document.querySelectorAll(`.item[data-section="${sec}"]:not(.na)`).length,done=document.querySelectorAll(`.item[data-section="${sec}"]:not(.na).checked`).length;document.getElementById(`count-${sec}`).textContent=`${done} / ${all}`});const btn=document.getElementById('submitBtn');if(left===0){btn.disabled=false;btn.textContent='Sign Off Room ✓'}else{btn.disabled=true;btn.textContent=`Complete All Items to Sign Off (${left} remaining)`}}
+async function submitForm(){const room=document.getElementById('roomNum').value;if(!room){alert('Please select a room number.');return}const typeEl=document.getElementById('serviceType'),actions=Array.from(document.querySelectorAll('.action-checkbox:checked')).map(c=>c.value),notes=document.getElementById('notes').value.trim();if(actions.length>0&&!notes){alert('Please describe the issue in the notes field.');return}const ts=now(),payload={action:'submit',timestamp:ts,staff:currentStaff,room,serviceType:typeEl.options[typeEl.selectedIndex].text,actionRequired:actions.length?actions.join(', '):'None',notes:notes||'',userAgent:navigator.userAgent.slice(0,80)};document.getElementById('summaryBox').innerHTML=`<div class="summary-row"><span>Room</span><b>${room}</b></div><div class="summary-row"><span>Staff</span><b>${currentStaff}</b></div><div class="summary-row"><span>Service</span><b>${payload.serviceType}</b></div><div class="summary-row"><span>Time</span><b>${ts}</b></div>${payload.actionRequired!=='None'?`<div class="summary-row"><span>Action Required</span><b style="color:var(--red)">${payload.actionRequired}</b></div>`:''}${notes?`<div class="summary-row"><span>Notes</span><b style="font-size:.82rem">${notes}</b></div>`:''}`;lastSubmission={room,serviceType:typeEl.value,actions,notes};saveLocally(payload);logAccess({event:'SUBMIT',staff:currentStaff,room,ts});document.getElementById('syncStatus').textContent='Syncing…';const result=await syncToSheets(payload),badge=document.getElementById('syncBadge');document.getElementById('syncStatus').textContent='';if(result&&result.id){lastSubmission.id=result.id;badge.className='sync-badge ok';badge.textContent='✓ Synced to Google Sheets';startRecallTimer()}else{badge.className='sync-badge offline';badge.textContent='⚠ Saved locally — will sync when online';document.getElementById('recallBtn').style.display='none';document.getElementById('recallNote').style.display='none'}document.getElementById('formScreen').style.display='none';document.getElementById('successScreen').classList.add('show')}
+async function syncToSheets(payload){if(!CONFIG.SHEETS_URL||!navigator.onLine)return null;try{const res=await fetch(CONFIG.SHEETS_URL,{method:'POST',body:JSON.stringify(payload)});return await res.json()}catch{return null}}
+function startRecallTimer(){recallSecsLeft=300;document.getElementById('recallBtn').style.display='block';document.getElementById('recallNote').style.display='block';document.getElementById('recallBtn').disabled=false;updateRecallBtn();recallTimerId=setInterval(()=>{recallSecsLeft--;updateRecallBtn();if(recallSecsLeft<=0){clearRecall();document.getElementById('recallBtn').style.display='none';document.getElementById('recallNote').style.display='none'}},1000)}
+function updateRecallBtn(){const m=Math.floor(recallSecsLeft/60),s=String(recallSecsLeft%60).padStart(2,'0');document.getElementById('recallBtn').textContent=`Made a mistake? Recall & Fix (${m}:${s})`}
+function clearRecall(){clearInterval(recallTimerId);recallTimerId=null;recallSecsLeft=0}
+async function recallSubmission(){if(!lastSubmission||!lastSubmission.id)return;const btn=document.getElementById('recallBtn');btn.disabled=true;btn.textContent='Recalling…';try{const res=await fetch(CONFIG.SHEETS_URL,{method:'POST',body:JSON.stringify({action:'recall',id:lastSubmission.id})}),result=await res.json();if(result.ok){clearRecall();logAccess({event:'RECALL',staff:currentStaff,id:lastSubmission.id,ts:now()});document.getElementById('successScreen').classList.remove('show');document.getElementById('formScreen').style.display='block';document.getElementById('roomNum').value=lastSubmission.room;document.getElementById('serviceType').value=lastSubmission.serviceType;lastSubmission.actions.forEach(action=>{document.querySelector(`.action-checkbox[value="${action}"]`).checked=true});document.getElementById('notes').value=lastSubmission.notes;updateNotes();document.querySelectorAll('.item.checked').forEach(el=>el.classList.remove('checked'));updateProgress();window.scrollTo(0,0);lastSubmission=null}else{btn.disabled=false;btn.textContent='Recall failed — contact your supervisor'}}catch{btn.disabled=false;btn.textContent='Connection error — try again'}}
+function resetForm(){clearRecall();document.querySelectorAll('.item.checked').forEach(el=>el.classList.remove('checked'));document.getElementById('roomNum').value='';document.getElementById('serviceType').value='';document.querySelectorAll('.action-checkbox').forEach(cb=>cb.checked=false);document.getElementById('serviceTypeStep').style.display='none';document.getElementById('checklistSteps').style.display='none';document.getElementById('progressStep').style.display='none';updateNotes();document.getElementById('notes').value='';document.getElementById('syncStatus').textContent='';document.getElementById('recallBtn').style.display='block';document.getElementById('recallNote').style.display='block';document.getElementById('successScreen').classList.remove('show');document.getElementById('formScreen').style.display='block';lastSubmission=null;window.scrollTo(0,0)}
+function saveLocally(payload){const log=JSON.parse(localStorage.getItem('hk-log')||'[]');payload._synced=false;log.push(payload);localStorage.setItem('hk-log',JSON.stringify(log))}
+async function retrySyncs(){if(!CONFIG.SHEETS_URL)return;const log=JSON.parse(localStorage.getItem('hk-log')||'[]');let changed=false;for(const entry of log){if(!entry._synced){try{const res=await fetch(CONFIG.SHEETS_URL,{method:'POST',body:JSON.stringify(entry)});if(res.ok){entry._synced=true;changed=true}}catch{}}}if(changed)localStorage.setItem('hk-log',JSON.stringify(log))}
+function logAccess(entry){const log=JSON.parse(localStorage.getItem('hk-access-log')||'[]');log.push(entry);if(log.length>500)log.splice(0,log.length-500);localStorage.setItem('hk-access-log',JSON.stringify(log))}
+function now(){return new Date().toLocaleString('en-AU',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function updateOnlineStatus(){document.getElementById('offlineBanner').classList.toggle('show',!navigator.onLine)}
 </script>
 </body>
 </html>

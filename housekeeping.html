@@ -21,19 +21,18 @@
   .login-hero { position:relative; width:100%; text-align:center;
     padding:72px 24px 56px; overflow:hidden; min-height:320px;
     display:flex; flex-direction:column; align-items:center; justify-content:center; }
-  .login-hero-bg { position:absolute; inset:0;
+  .login-hero-bg { position:absolute !important; inset:0; z-index:0;
     background-color:#1a3d4f;
     background-image:url('https://cdn.sanity.io/images/qh4rmfog/production/37869edd8cc9ba24fc89dd511704d182331aad10-4000x2667.jpg?w=800&fit=max&auto=format');
     background-size:cover; background-position:center; }
-  .login-hero-overlay { position:absolute; inset:0;
+  .login-hero-overlay { position:absolute !important; inset:0; z-index:1;
     background:linear-gradient(to bottom, rgba(14,42,54,.72) 0%, rgba(20,58,74,.85) 100%); }
-  .login-hero > * { position:relative; z-index:1; }
-  .login-eagle { width:68px; height:auto; margin-bottom:14px;
-    filter:brightness(0) invert(1); drop-shadow:0 2px 8px rgba(0,0,0,.4); }
-  .login-wordmark { width:180px; height:auto; margin-bottom:10px;
+  .login-eagle { position:relative; z-index:2; width:68px; height:auto; margin-bottom:14px;
+    filter:brightness(0) invert(1); }
+  .login-wordmark { position:relative; z-index:2; width:180px; height:auto; margin-bottom:10px;
     filter:brightness(0) invert(1); opacity:.9; }
-  .login-hero p { color:rgba(255,255,255,.65); font-size:.78rem; margin-top:2px;
-    text-transform:uppercase; letter-spacing:3px; }
+  .login-hero p { position:relative; z-index:2; color:rgba(255,255,255,.65);
+    font-size:.78rem; margin-top:2px; text-transform:uppercase; letter-spacing:3px; }
   .login-body { padding:28px 24px 48px; width:100%; display:flex;
     flex-direction:column; align-items:center; background:var(--cream); flex:1; }
   .login-card { background:#fff; border:1px solid var(--border); border-radius:16px;

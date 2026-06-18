@@ -237,30 +237,36 @@ const CONFIG = {
   </header>
 
   <div class="meta">
-    <div class="field">
-      <label>Room</label>
-      <select id="roomNum"></select>
-    </div>
-    <div class="field">
-      <label>Progress</label>
-      <div style="padding:9px 0; font-size:1.1rem; font-weight:800; color:var(--ocean)">
-        <span id="pct">0%</span>
-        <span style="font-size:.75rem;font-weight:400;color:var(--muted)" id="remaining"></span>
-      </div>
-    </div>
     <div class="field full">
-      <label>Service Type</label>
+      <label>Step 1: Select Room *</label>
+      <select id="roomNum" onchange="enableServiceType()"></select>
+    </div>
+
+    <div id="serviceTypeStep" class="field full" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+      <label>Step 2: Service Type *</label>
       <select id="serviceType" onchange="updateServiceItems()">
+        <option value="">Choose service type…</option>
         <option value="full">Full Clean (checkout)</option>
         <option value="refresh">Refresh (stay-over)</option>
         <option value="turndown">Turndown Service</option>
         <option value="inspection">Inspection Only</option>
       </select>
     </div>
+
+    <div id="progressStep" class="field" style="display:none;margin-top:10px;">
+      <label>Progress</label>
+      <div style="padding:9px 0; font-size:1.1rem; font-weight:800; color:var(--ocean)">
+        <span id="pct">0%</span>
+        <span style="font-size:.75rem;font-weight:400;color:var(--muted)" id="remaining"></span>
+      </div>
+    </div>
   </div>
 
-  <!-- BEDROOM -->
-  <div class="section">
+  <div id="checklistSteps" style="display:none;">
+    <div style="padding:14px;background:var(--sand);border-radius:8px;margin-bottom:12px;margin-left:12px;margin-right:12px;font-size:.85rem;color:var(--ocean);font-weight:600;">Step 3: Complete All Tasks</div>
+
+    <!-- BEDROOM -->
+    <div class="section">
     <div class="section-head"><h2>Bedroom</h2><span class="section-count" id="count-bedroom">0 / 6</span></div>
     <div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Beds made / linen changed</div></div>
     <div class="item" data-section="bedroom" data-services="full refresh turndown" onclick="toggle(this)"><div class="checkbox"><span class="tick">✓</span></div><div class="item-label">Pillows fluffed &amp; arranged</div></div>
@@ -325,6 +331,7 @@ const CONFIG = {
       <label>Notes <span id="notesRequired" style="color:var(--red);display:none">*</span></label>
       <textarea id="notes" placeholder="Describe the issue…"></textarea>
     </div>
+  </div>
   </div>
 
   <div class="submit-wrap">
@@ -527,9 +534,33 @@ function updateNotes() {
 }
 
 
+// ── Progressive disclosure ──
+function enableServiceType() {
+  const room = document.getElementById('roomNum').value;
+  const serviceStep = document.getElementById('serviceTypeStep');
+  serviceStep.style.display = room ? 'block' : 'none';
+
+  // Reset service type when room changes
+  document.getElementById('serviceType').value = '';
+  document.getElementById('checklistSteps').style.display = 'none';
+  document.getElementById('progressStep').style.display = 'none';
+}
+
 // ── Service type filter ──
 function updateServiceItems() {
   const svc = document.getElementById('serviceType').value;
+  const checklistSteps = document.getElementById('checklistSteps');
+  const progressStep = document.getElementById('progressStep');
+
+  if (!svc) {
+    checklistSteps.style.display = 'none';
+    progressStep.style.display = 'none';
+    return;
+  }
+
+  checklistSteps.style.display = 'block';
+  progressStep.style.display = 'block';
+
   document.querySelectorAll('.item[data-services]').forEach(item => {
     const applies = item.dataset.services.split(' ').includes(svc);
     item.classList.toggle('na', !applies);
@@ -726,10 +757,12 @@ async function recallSubmission() {
 function resetForm() {
   clearRecall();
   document.querySelectorAll('.item.checked').forEach(el => el.classList.remove('checked'));
-  document.getElementById('roomNum').selectedIndex     = 0;
-  document.getElementById('serviceType').selectedIndex = 0;
+  document.getElementById('roomNum').value = '';
+  document.getElementById('serviceType').value = '';
   document.querySelectorAll('.action-checkbox').forEach(cb => cb.checked = false);
-  updateServiceItems();
+  document.getElementById('serviceTypeStep').style.display = 'none';
+  document.getElementById('checklistSteps').style.display = 'none';
+  document.getElementById('progressStep').style.display = 'none';
   updateNotes();
   document.getElementById('notes').value               = '';
   document.getElementById('syncStatus').textContent    = '';
@@ -738,7 +771,6 @@ function resetForm() {
   document.getElementById('successScreen').classList.remove('show');
   document.getElementById('formScreen').style.display  = 'block';
   lastSubmission = null;
-  updateProgress();
   window.scrollTo(0, 0);
 }
 

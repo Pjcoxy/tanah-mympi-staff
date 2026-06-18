@@ -206,7 +206,8 @@ const CONFIG = {
     </select>
     <label>PIN</label>
     <input type="password" id="loginPin" inputmode="numeric" maxlength="4"
-           class="pin-input" placeholder="••••" autocomplete="off"
+           class="pin-input" placeholder="••••"
+           autocomplete="one-time-code" data-lpignore="true" data-form-type="other"
            onkeydown="if(event.key==='Enter')doLogin()"/>
     <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
     <div class="login-error" id="loginError">Incorrect PIN — please try again.</div>

@@ -26,8 +26,20 @@ web app. No build step — self-contained HTML files with vanilla JS/CSS plus a 
 - `index.html` — the entire staff app (single file): config + UI + checklist + login + submit.
 - `dashboard.html` — stats dashboard (Chart.js from CDN). Reads live data via `?action=records`.
 - `apps-script/Code.gs` — version-controlled COPY of the Apps Script backend (see Backend below).
-- `HOUSEKEEPING_APP_SUPPORT.md` — user/support guide (also `.rtf` for Word).
+- `HOUSEKEEPING_APP_SUPPORT.md` — human support / as-built guide (the source).
+- `HOUSEKEEPING_APP_SUPPORT.pdf` — shareable PDF, GENERATED from the `.md` (don't hand-edit).
+- `docs/architecture.svg` — architecture diagram used in the support guide.
+- `docs/build_support_pdf.py` — regenerates the PDF: `python docs/build_support_pdf.py`.
+- `docs/screenshots/` — login.png / form.png / dashboard.png for the guide.
 - `robots.txt` — blocks crawlers.
+
+## Documentation model (keep these in sync on EVERY change)
+Two docs, two audiences — update both in the same turn when the app changes:
+1. **`CLAUDE.md`** (this file) — terse project/operator context for AI-assisted maintenance.
+2. **`HOUSEKEEPING_APP_SUPPORT.md`** — standalone human guide (architecture, ops, troubleshooting).
+   After editing it, regenerate the PDF: `python docs/build_support_pdf.py` (Markdown → styled HTML →
+   Edge headless `--print-to-pdf`; missing screenshots become placeholders automatically). Commit the
+   refreshed `.pdf` so a current shareable copy always exists in the repo. The old `.rtf` was deleted.
 
 ## Backend (Google Apps Script + Google Sheet)
 - **Data Sheet** (`SHEET_ID` `19lrq6Sp7wY0q74mtZd0VDgLwj4QGu1Vf-LUEEMDzbPY`), still titled
@@ -97,4 +109,6 @@ Progressive disclosure: Step 1 Room → Step 2 Service Type → Step 3 Checklist
   `housekeeping.html` → `index.html` for a clean Pages URL. Added "Logged in as" header banner.
   Added `dashboard.html` (Chart.js stats) and the `?action=records` backend endpoint; committed a
   repo copy of the backend at `apps-script/Code.gs`. Backend redeployed and dashboard verified live
-  (records endpoint returning data).
+  (records endpoint returning data). Rebuilt the human support guide
+  (`HOUSEKEEPING_APP_SUPPORT.md` + generated `.pdf` + `docs/architecture.svg` + build script);
+  deleted the stale `.rtf`. Screenshots still pending (preview tool couldn't capture the live pages).

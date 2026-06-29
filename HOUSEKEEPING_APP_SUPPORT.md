@@ -1,546 +1,247 @@
-# Tanah Mympi Housekeeping App
-## Support & Operations Guide
+# Tanah Mympi Housekeeping — Support & As-Built Guide
 
-**Version:** 1.0  
-**Last Updated:** June 19, 2026  
-**Status:** Production
+A standalone reference for anyone who needs to **understand, review, operate, or fix** the Tanah
+Mympi housekeeping app. If you are new to this system, read the Overview and Architecture sections
+first; if something is broken, jump to Troubleshooting.
 
----
-
-## Table of Contents
-1. [Overview](#overview)
-2. [System Architecture](#system-architecture)
-3. [Component Descriptions](#component-descriptions)
-4. [Workflow & Data Flow](#workflow--data-flow)
-5. [User Guide](#user-guide)
-6. [Troubleshooting](#troubleshooting)
-7. [Release Notes](#release-notes)
-8. [Setup & Deployment](#setup--deployment)
+> **Status:** Live in production. **Last updated:** 2026-06-29.
+> This document is the source (`HOUSEKEEPING_APP_SUPPORT.md`); the matching
+> `HOUSEKEEPING_APP_SUPPORT.pdf` is the shareable copy and is regenerated whenever this file changes.
 
 ---
 
-## Overview
+## 1. Quick reference
 
-The Tanah Mympi Housekeeping App is a web-based checklist application designed to streamline housekeeping operations for a boutique island resort. Staff members use the app to sign off on completed room cleanings, flag maintenance issues, and document any action items that require follow-up.
-
-### Key Features
-- **PIN-based authentication** for staff security
-- **Progressive disclosure UX** that guides staff through the process step-by-step
-- **Service-type filtering** to show only relevant checklist items
-- **Action required tracking** for maintenance, damage, missing items, and other issues
-- **Real-time Google Sheets syncing** for centralized record-keeping
-- **Offline detection** with warning banner (internet required to submit)
-- **Mobile-friendly interface** optimized for tablets and smartphones
-
-### Business Value
-- Eliminates paper-based workflows
-- Creates audit trail in Google Sheets
-- Enables quick identification of maintenance needs
-- Reduces time per room check from ~15 min to ~5-8 min
-- Provides real-time visibility into room status
+| Thing | Value |
+|---|---|
+| **Staff app (live)** | https://pjcoxy.github.io/tanah-mympi-staff/ |
+| **Stats dashboard (live)** | https://pjcoxy.github.io/tanah-mympi-staff/dashboard.html |
+| **Source code (GitHub)** | https://github.com/Pjcoxy/tanah-mympi-staff (public) |
+| **Hosting** | GitHub Pages — branch `main`, root folder |
+| **Backend** | Google Apps Script web app (`/exec` endpoint) |
+| **Database** | Google Sheet (ID `19lrq6Sp7wY0q74mtZd0VDgLwj4QGu1Vf-LUEEMDzbPY`) |
+| **Apps Script project** | https://script.google.com/d/1F7ZbhlHNl_BI9W0_mOkN9hWfAHSKHNOO5w9Ul4LsvfZRsAs_wgpGWpAy/edit |
 
 ---
 
-## System Architecture
+## 2. Overview
 
-### High-Level Component Diagram
+The app lets housekeeping staff sign off completed room cleans on their phone or tablet. They log
+in with a name + PIN, step through a checklist tailored to the type of service, flag any issues
+(maintenance, damage, missing items), and submit. Every submission and login is recorded in a
+Google Sheet, and a separate dashboard turns that data into charts for management.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     HOUSEKEEPING APP FLOW                       │
-└─────────────────────────────────────────────────────────────────┘
+**Design goals:** zero install (just a URL), works on any phone, cheap to run (free hosting +
+Google Sheets), and simple enough to maintain without a developer on staff.
 
-┌──────────────────┐
-│   STAFF DEVICE   │  (Tablet, Phone, Browser)
-│  housekeeping.   │
-│   html file      │
-└────────┬─────────┘
-         │
-         │ (HTTPS)
-         ▼
-┌──────────────────────────────────────────────────────────────┐
-│  GOOGLE APPS SCRIPT (Cloud Function)                         │
-│  ┌────────────────────────────────────────────────────────┐  │
-│  │ • PIN Validation (Authentication)                      │  │
-│  │ • Data Submission Processing                           │  │
-│  │ • Submission Recall Handling                           │  │
-│  │ • Staff List Management                                │  │
-│  └────────────────────────────────────────────────────────┘  │
-└────────┬──────────────────────────────────────────────────────┘
-         │
-         │ (Read/Write)
-         ▼
-┌──────────────────────────────────────────────────────────────┐
-│  GOOGLE SHEETS (Database)                                    │
-│  ┌─────────────────┬──────────────────┬────────────────────┐ │
-│  │ Staff List Tab  │ Submissions Tab  │ Access Log Tab     │ │
-│  ├─────────────────┼──────────────────┼────────────────────┤ │
-│  │ • Name          │ • Room ID        │ • Event (Login,    │ │
-│  │ • PIN Hash      │ • Service Type   │   Submit, Logout)  │ │
-│  │ • Status        │ • Timestamp      │ • Staff Name       │ │
-│  │                 │ • Staff Name     │ • Timestamp        │ │
-│  │                 │ • Action Items   │ • Device Info      │ │
-│  │                 │ • Notes          │                    │ │
-│  │                 │ • Sync Status    │                    │ │
-│  └─────────────────┴──────────────────┴────────────────────┘ │
-└──────────────────────────────────────────────────────────────┘
-
-┌──────────────────┐
-│  LOCAL STORAGE   │  (Browser localStorage)
-│  ┌──────────────┐│
-│  │ Staff Names  ││  (Cached for offline)
-│  │ Submissions  ││
-│  │ Access Logs  ││
-│  └──────────────┘│
-└──────────────────┘
-```
-
-### Technology Stack
-
-| Component | Technology | Purpose |
-|-----------|-----------|---------|
-| Frontend | HTML5, CSS3, Vanilla JavaScript | Single-file PWA app |
-| Backend | Google Apps Script | Serverless cloud functions |
-| Database | Google Sheets | Central data repository |
-| Authentication | PIN + Staff Name | Session-based auth |
-| Sync | Fetch API + localStorage | Real-time & offline sync |
-| Hosting | Any web server (HTTPS required) | GitHub Pages, static host, or CDN |
+### Key features
+- PIN-based staff login (shared-device friendly — a prominent "Logged in as" banner shows who is active)
+- Progressive, guided checklist that adapts to the service type
+- Action-item flags for follow-up (maintenance / damage / missing item / other)
+- Requires an internet connection to submit; warns when offline
+- All activity logged to Google Sheets (submissions + login/logout audit)
+- Stats dashboard with weekly trends and breakdowns
 
 ---
 
-## Component Descriptions
+## 3. Visual tour
 
-### 1. Frontend (index.html)
+> **Screenshots:** drop current captures into `docs/screenshots/` with the filenames below and they
+> will appear here and in the PDF. (They were not auto-captured because the preview tool could not
+> render the live pages; grabbing them from the live URLs above gives the cleanest result.)
 
-**Size:** ~8KB (minified)  
-**Type:** Single-page application (SPA)
+**Login screen**
 
-#### Key Sections:
-- **Login Screen:** Staff authentication via PIN
-- **Form Screen:** Progressive multi-step form for room sign-off
-- **Success Screen:** Confirmation with 5-minute recall window
-- **Offline Banner:** Alerts when connection is lost
+![Login screen](docs/screenshots/login.png)
 
-#### Progressive Disclosure Stages:
-1. **Step 1:** Select room number
-2. **Step 2:** Choose service type (Full Clean, Refresh, Turndown, Inspection)
-3. **Step 3:** Complete checklist items (filtered by service type)
-4. **Step 4:** Select action items if needed, add notes
-5. **Step 5:** Submit and review summary
+**Room sign-off form (note the gold "Logged in as" banner pinned at the top)**
 
-#### Key Functions:
-```
-doLogin()              → Authenticate staff member via PIN
-showForm()             → Display housekeeping form
-toggle()               → Mark checklist item as complete
-updateServiceItems()   → Filter items by service type
-updateNotes()          → Manage action item styling
-submitForm()           → Validate and submit data
-resetForm()            → Clear all form state for next room
-recallSubmission()     → Undo previous submission (5-min window)
-```
+![Sign-off form](docs/screenshots/form.png)
 
-### 2. Google Apps Script
+**Stats dashboard**
 
-**Type:** Cloud-based backend service  
-**Trigger:** HTTP POST requests from app
-
-#### Functions:
-- **`doPost(e)`** - Main handler for all requests
-- **`validatePIN(name, pin)`** - Authenticates staff
-- **`logSubmission(data)`** - Writes to Submissions tab
-- **`logAccess(data)`** - Records login/logout events
-- **`recallSubmission(id)`** - Marks submission as recalled
-- **`getStaffList()`** - Returns active staff members
-
-#### Security:
-- PINs stored as hashed values (not plaintext)
-- All requests logged for audit trail
-- HTTPS-only transmission
-- Timestamp validation to prevent replay attacks
-
-### 3. Google Sheets Database
-
-**Structure:**
-```
-Sheet 1: "Staff"
-├─ Name (text) - Unique staff identifier
-├─ PIN (hashed) - Verification credential
-└─ Active (boolean) - Enable/disable staff account
-
-Sheet 2: "Submissions"
-├─ Room
-├─ Service Type
-├─ Staff Name
-├─ Timestamp
-├─ Action Required (Maintenance, Damage, Missing Item, Other)
-├─ Notes
-├─ Sync Status (Synced/Pending)
-├─ Submission ID
-└─ Device Info (User Agent)
-
-Sheet 3: "Access Log"
-├─ Event (LOGIN, LOGIN_FAIL, LOGOUT, TIMEOUT, SUBMIT, RECALL)
-├─ Staff Name
-├─ Timestamp
-└─ Additional Data (Room, ID, etc.)
-```
+![Dashboard](docs/screenshots/dashboard.png)
 
 ---
 
-## Workflow & Data Flow
+## 4. Architecture
 
-### Complete User Journey
+![Architecture diagram](docs/architecture.svg)
 
-```
-START
-  │
-  ├─► Login Screen
-  │   ├─ Select Staff Name
-  │   ├─ Enter PIN
-  │   └─ Submit → [Authentication Check]
-  │       ├─ FAIL → Show error, retry
-  │       └─ SUCCESS → Continue
-  │
-  ├─► Form Screen (Progressive)
-  │   │
-  │   ├─ Step 1: Select Room
-  │   │   └─ Reveals Step 2
-  │   │
-  │   ├─ Step 2: Select Service Type
-  │   │   └─ Reveals checklist & progress
-  │   │
-  │   ├─ Step 3: Complete Checklist Items
-  │   │   ├─ Click items to mark complete
-  │   │   ├─ Progress bar updates
-  │   │   └─ When all complete → Submit button enabled
-  │   │
-  │   ├─ Step 4: Action Items (Optional)
-  │   │   ├─ Select action items if needed (Maintenance, Damage, etc.)
-  │   │   ├─ If selected → Notes field becomes required
-  │   │   └─ Add description in Notes
-  │   │
-  │   └─ Step 5: Submit
-  │       └─ Send data to Google Sheets
-  │
-  ├─► Success Screen
-  │   ├─ Show summary of submission
-  │   ├─ Display sync status
-  │   ├─ Offer 5-minute recall window
-  │   └─ Button: "Start Next Room"
-  │       │
-  │       └─► [Form Reset]
-  │           ├─ Clear all selections
-  │           ├─ Reset action item styling
-  │           ├─ Clear notes
-  │           └─ Back to Step 1
-  │
-  └─► Repeat for next room or Logout
-```
+The system has three moving parts:
 
-### Data Submission Flow
+1. **Static front-end** (`index.html`, `dashboard.html`) served by **GitHub Pages**. These are plain
+   HTML/CSS/JavaScript files — there is no server-side code in the hosting layer and no build step.
+2. **Google Apps Script web app** — the back-end "API". The browser calls it directly over HTTPS.
+   It validates logins, writes submissions, and returns data.
+3. **Google Sheet** — the database. The Apps Script reads and writes two tabs (`Staff`, `Records`).
 
-```
-Form Submit
-    │
-    ▼
-Browser Validation
-    │ ├─ Room selected?
-    │ ├─ Service type selected?
-    │ ├─ All items completed?
-    │ └─ If action items selected, notes required?
-    │
-    ├─ FAIL → Show alert, don't submit
-    │
-    └─ SUCCESS
-        │
-        ▼
-   Save Locally (localStorage)
-   _synced = false
-        │
-        ▼
-   Attempt Cloud Sync (if online)
-        │
-        ├─ POST to Google Apps Script
-        │
-        ▼
-   Google Script Processing
-        │
-        ├─ Validate submission format
-        ├─ Append to "Submissions" sheet
-        ├─ Log to "Access Log" sheet
-        ├─ Return submission ID
-        │
-        ├─ SUCCESS → Show "Synced to Google Sheets"
-        │            Mark as _synced = true
-        │
-        └─ FAIL → Show "Saved locally, will sync when online"
-                  Keep in localStorage for retry
-```
-
-### Internet Requirement
-
-```
-Device Goes Offline
-    │
-    ▼
-Offline Banner Shown
-    │
-    ├─ Yellow alert banner appears at top
-    ├─ Staff notified of connection loss
-    └─ Submit button disabled
-    │
-    ▼
-User Must Reconnect Before Submission
-    │
-    ├─ Cannot complete form submission while offline
-    ├─ Error message if submission attempted: 
-    │  "You must be connected to the internet to submit"
-    └─ Staff must restore connection and try again
-    │
-    ▼
-Device Reconnects
-    │
-    ▼
-Offline Banner Disappears
-    │
-    └─ Staff can now submit normally
-```
+Data flow: the browser **loads** the app from GitHub Pages, then talks **directly** to the Apps
+Script endpoint for all live data (it does not route through GitHub). The Apps Script is the only
+thing that touches the Google Sheet, which keeps PINs off the public internet.
 
 ---
 
-## User Guide
+## 5. Components
 
-### For Housekeeping Staff
+### 5.1 Front-end — staff app (`index.html`)
+A single self-contained file: inline CSS, inline vanilla JavaScript, no frameworks, no build.
 
-#### Before You Start
-1. **Have your PIN ready** - You'll receive a 4-digit PIN from your supervisor
-2. **Use a tablet or phone** - The app works best on mobile devices
-3. **Check internet connection** - App works offline but needs connection to sync
+- **Configuration** lives at the top of the `<script>` block:
+  ```javascript
+  const CONFIG = {
+    SHEETS_URL: 'https://script.google.com/macros/s/.../exec', // backend endpoint
+    TIMEOUT_MINS: 20,                                          // idle auto-logout
+    ROOMS: ['101','102', /* ... */ ,'Suite B']                // room list shown in the form
+  };
+  ```
+- **Login:** `doLogin()` POSTs `{action:'login', name, pin}` to the backend; on success it calls
+  `showForm()`, which also sets the **"Logged in as NAME"** banner in the sticky header.
+- **The checklist** is built from `<div class="item" data-section="..." data-services="...">` elements.
+  `data-services` is a space-separated list (`full refresh turndown inspection`) that controls which
+  service types show that item; `updateServiceItems()` shows/hides them when the service type changes.
+  Sections are `bedroom`, `bathroom`, `minibar`, `final`.
+- **Submit:** `submitForm()` requires an internet connection, builds the payload, and POSTs
+  `{action:'submit', ...}`. A short "recall" window lets staff undo the last submission.
+- **Idle timeout:** after `TIMEOUT_MINS` of inactivity the user is logged out.
 
-#### Step-by-Step Process
+### 5.2 Front-end — dashboard (`dashboard.html`)
+A separate page that loads **Chart.js** (from a CDN) and pulls live data via
+`GET {SHEETS_URL}?action=records` on each load. It filters to rows where `Type === 'SUBMISSION'`
+and renders six charts:
 
-**1. Login**
-- Select your name from the dropdown
-- Enter your 4-digit PIN
-- Tap "Sign In"
-- If you see an error, double-check your PIN and try again
+| Chart | Shows |
+|---|---|
+| Rooms cleaned per week | Weekly count + a 4-week rolling average line |
+| Rooms cleaned by staff | Total sign-offs per staff member |
+| Service type mix | Share of Full Clean / Refresh / Turndown / Inspection |
+| Action items flagged | Counts of maintenance / damage / missing / other |
+| Busiest day of week | When sign-offs happen most |
+| Busiest rooms | Rooms with the most sign-offs |
 
-**2. Select Room**
-- The app will show "Step 1: Select Room"
-- Choose your room number from the dropdown
-- Once selected, "Step 2: Service Type" will appear
+Key functions: `load()` (fetch), `render(records)` (aggregate + draw), `parseTs()` (timestamp parsing).
 
-**3. Choose Service Type**
-- **Full Clean (checkout)** - Complete cleaning for guests checking out
-- **Refresh (stay-over)** - Quick refresh for guests staying another night
-- **Turndown Service** - Evening turndown, fresh linens, amenities
-- **Inspection Only** - Visual inspection without full clean
+### 5.3 Back-end — Google Apps Script
+A standalone Apps Script project (see Quick reference for the link). A version-controlled copy lives
+in the repo at [`apps-script/Code.gs`](apps-script/Code.gs) — **this copy is not automatically synced
+to the live project** (see Deployment).
 
-**4. Complete Checklist**
-- The app shows only items relevant to your service type
-- Tap each item as you complete it (it will turn green with checkmark)
-- Watch the progress bar at top to see how many items remain
-- When all items show green checkmarks, the submit button will activate
+- `doGet(e)` — routes on `?action`:
+  - `?action=records` → returns every row of the `Records` tab as JSON objects (**never PINs**).
+  - anything else (including the app's `?action=staff`) → returns the list of active staff names.
+- `doPost(e)` — routes on `action` in the JSON body: `login`, `submit`, `recall`.
+- Helpers: `handleLogin`, `handleSubmit`, `handleRecall`, `logEvent`, `json`.
 
-**5. Note Any Issues (If Applicable)**
-- If you encounter a problem, tap one of the action items:
-  - 🔧 **Maintenance** - Equipment or systems need repair
-  - ⚠️ **Damage** - Furniture, fixtures, or décor damaged
-  - 📋 **Missing Item** - Something is missing from the room
-  - ❓ **Other** - Any other issue
-- Once you select an action item, the Notes field becomes required
-- Describe the issue in detail so maintenance can resolve it
+### 5.4 Data model — the Google Sheet
+Two tabs:
 
-**6. Sign Off Room**
-- Tap "Sign Off Room ✓" button
-- You'll see a summary of what was submitted
-- The app shows "✓ Synced to Google Sheets" (if online) or "Saved locally" (if offline)
+**`Staff`**
+| Column | Meaning |
+|---|---|
+| A — Name | Staff display name (must match what they pick at login) |
+| B — PIN | 4-digit PIN — **stored in plaintext** (see Security) |
+| C — Active | `Yes` to allow login, anything else disables the account |
 
-**7. Start Next Room**
-- If you made a mistake, you have 5 minutes to tap "Recall & Fix"
-- Otherwise, tap "Start Next Room" to reset and begin the next room
-- All selections will be cleared automatically
-
-#### Internet Connection Required
-- **You must have an active internet connection to submit your work**
-- If you lose connection, a yellow banner appears saying "You're offline"
-- The submit button will not work while offline
-- If you try to submit offline, you'll see an error: "You must be connected to the internet to submit"
-- **Reconnect your internet**, then you can submit normally
-- **Do not turn off WiFi** to avoid losing your progress when you try to submit
-
-#### Tips
-- **Be specific in notes** - "Broken mirror" is better than "Damage"
-- **Only select action items if there's actually an issue** - Don't flag unnecessarily
-- **Work through the checklist in order** - It's designed to guide you
-- **Use your device's timer** if you need to track how long each room takes
-
----
-
-## Troubleshooting
-
-### Login Issues
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| "Incorrect PIN" error | Wrong PIN entered | Double-check your 4-digit PIN with your supervisor |
-| Staff name not in dropdown | Offline or not yet added to system | Ask supervisor to add you to staff list, or manually type your name |
-| "Session timed out" | Inactive for 20+ minutes | Log back in with your PIN |
-
-### Sync Issues
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| "Saved locally — will sync when online" | No internet connection | Check WiFi/data connection; submissions sync automatically when online |
-| Stuck in offline mode | Connection restored but app not retrying | Try refreshing the page once you have connection |
-| Same submission appearing twice | Accidental duplicate submission | Contact supervisor; they can mark one as duplicate in Sheets |
-
-### Checklist Issues
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| Items aren't unchecking | Browser glitch | Refresh the page; progress is saved in Google Sheets |
-| Wrong items showing | Incorrect service type selected | Go back to Step 2 and select correct service type |
-| Can't submit even though all items are checked | Action item selected without notes | If you selected an action item (🔧, ⚠️, etc.), you MUST fill in the Notes field |
-
-### App Issues
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| App won't load | Old version cached in browser | Clear browser cache (settings → Clear browsing data) |
-| App is very slow | Large amount of data cached | Clear localStorage: In browser console, type `localStorage.clear()` then refresh |
-| Can't find the app URL | Not bookmarked or lost link | Ask your supervisor for the app link or check your emails |
-
-### For Supervisors/Troublemakers
-
-**Check submission status in Google Sheets:**
-1. Open the Submissions sheet
-2. Look in "Sync Status" column:
-   - "Synced" = Successfully uploaded
-   - "Pending" = Waiting to upload (offline submission)
-3. Check "Access Log" sheet to see login/logout times
-
-**Resolve data issues:**
-- **Missing submission:** Check "Access Log" to see if submit was attempted
-- **Duplicate submission:** Mark older one with note "DUPLICATE - ignore"
-- **Need to undo:** Use the 5-minute recall window or manually delete from Sheets
+**`Records`** (one combined log of everything)
+| Column | Meaning |
+|---|---|
+| Type | `SUBMISSION`, `LOGIN`, `LOGIN_FAIL`, or `RECALL` |
+| Timestamp | Date/time (written as text like `18 June 2026, 4:54 PM`) |
+| Staff Member | Who performed the action |
+| Room | Room number (submissions only) |
+| Service Type | e.g. `Full Clean (checkout)` (submissions only) |
+| Action Required | Flagged issues, or `None` |
+| Notes | Free-text notes / recall details |
+| Device | Browser user-agent (trimmed) |
 
 ---
 
-## Release Notes
+## 6. Hosting & deployment
 
-### Version 1.0 - Production Release
-
-**Release Date:** June 19, 2026
-
-#### Features
-- ✅ PIN-based staff authentication
-- ✅ Progressive disclosure UI (Step 1 → Step 2 → Step 3 → Submit)
-- ✅ Service-type filtering (Full Clean, Refresh, Turndown, Inspection)
-- ✅ Action required tracking (Maintenance, Damage, Missing Item, Other)
-- ✅ Internet connection validation (required for submission)
-- ✅ Offline detection with warning banner
-- ✅ Google Sheets integration for centralized data
-- ✅ 5-minute submission recall window
-- ✅ Real-time progress tracking
-- ✅ Mobile-optimized responsive design
-- ✅ Audit logging (login, logout, submit events)
-
-#### Bug Fixes
-- **Fixed action item styling persistence:** Action items (Maintenance, Damage, etc.) no longer remain visually selected when starting a new room. Form properly resets all styling when "Start Next Room" is clicked. *(Issue: https://github.com/Pjcoxy/tanah-mympi-staff/commit/62a53c4)*
-
-#### Performance
-- File size: 8KB minified (~70% reduction)
-- Load time: <1 second on 3G
-- Offline response: Instant (localStorage)
-- Cloud sync: <2 seconds (typical)
-
-#### Known Limitations
-- Requires HTTPS (security requirement)
-- PIN recall requires internet connection
-- Supports 4-digit PINs only (configurable)
-- Maximum 500 access log entries per staff member (auto-purges oldest)
+- **Front-end deploy = `git push` to `main`.** GitHub Pages publishes the repo root within ~1 minute.
+- The repo is **public** but kept **out of search engines** via `<meta name="robots" content="noindex">`
+  in each HTML page and a root `robots.txt` (`Disallow: /`).
+- **Back-end deploy is separate and manual.** After editing the Apps Script you must publish a new
+  version of the *existing* deployment so the `/exec` URL stays the same:
+  **Deploy → Manage deployments → ✏️ (edit) → Version: *New version* → Deploy.**
+  ⚠️ Do **not** use "New deployment" — that creates a different `/exec` URL, which would then have to
+  be updated in `CONFIG.SHEETS_URL` (in `index.html`) **and** in `dashboard.html`.
+- The `gh` CLI is installed and authenticated (as `Pjcoxy`), so repo and Pages settings can be
+  changed from the command line if needed.
 
 ---
 
-## Setup & Deployment
+## 7. Security considerations
 
-### Prerequisites
-- Google Account (for Sheets & Apps Script)
-- Web hosting (GitHub Pages, Netlify, or any HTTPS server)
-- Staff list with PIN assignments
+This is a low-stakes operational tool, but reviewers should be aware of the following:
 
-### Installation Steps
+- **⚠️ PINs are stored in plaintext** in the `Staff` tab. Anyone with edit access to the Sheet can
+  read every staff PIN. (An earlier version of this guide incorrectly said they were hashed — they
+  are not.) Acceptable for a housekeeping sign-off; not suitable if PINs are reused elsewhere.
+- **The data endpoint is open.** `?action=records` returns operational data (rooms, staff names,
+  notes) to anyone who has the URL. It **never** returns PINs. This was a deliberate choice for
+  simplicity; it can be locked behind an access key or staff login if required.
+- **The repo is public.** Source, the Sheet ID, and the backend URL are visible. None of these grant
+  access to the Sheet itself (which is not publicly shared), but be mindful before committing secrets.
+- **No rate limiting / brute-force protection** on PIN login beyond the `LOGIN_FAIL` audit entries.
 
-**1. Set up Google Sheets**
-```
-Create spreadsheet with three sheets:
-- Staff (columns: Name, PIN, Active)
-- Submissions (columns: Room, Service Type, Staff, Timestamp, Actions, Notes, Synced, ID, Device)
-- Access Log (columns: Event, Staff, Timestamp, Details)
-```
-
-**2. Create Google Apps Script**
-```
-1. In Sheets, go to Tools → Script Editor
-2. Replace default code with the backend script
-3. Deploy as web app:
-   - Execute as: Your account
-   - Who has access: Anyone
-4. Copy the deployment URL
-5. Replace CONFIG.SHEETS_URL in index.html with your URL
-```
-
-**3. Deploy Frontend**
-```
-1. Save index.html to your web server
-2. Ensure HTTPS is enabled
-3. Configure staff names in Google Sheets
-4. Generate/hash staff PINs
-5. Share app URL with staff
-```
-
-**4. Testing**
-```
-- Log in as test staff member
-- Complete full workflow (all steps to submit)
-- Verify data appears in Google Sheets
-- Test offline mode by disabling connection
-- Verify sync resumes when connection restored
-```
-
-### Configuration
-
-**In index.html, adjust:**
-```javascript
-const CONFIG = {
-  SHEETS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
-  TIMEOUT_MINS: 20,           // Session timeout in minutes
-  ROOMS: [...]                // Array of room numbers
-}
-```
-
-**Customizable:**
-- Room numbers list
-- Service types (or add more)
-- Checklist items
-- Action item labels
-- Colors (CSS variables in :root)
+Recommended hardening if the system grows: hash PINs, gate the records endpoint, and move to Firebase
+Auth or similar.
 
 ---
 
-## Support Contact
+## 8. Operations — common tasks
 
-For issues or questions:
-- **App Questions:** Contact your supervisor
-- **Technical Issues:** IT department
-- **Feature Requests:** Submit to project owner
-- **Bug Reports:** Include screenshots and step-by-step reproduction
+**Add a staff member:** open the Sheet → `Staff` tab → add a row: Name, PIN, `Yes`.
+
+**Disable a staff member:** set their `Active` column to anything other than `Yes` (e.g. `No`).
+
+**Reset / change a PIN:** edit the PIN value in their `Staff` row. The change is immediate.
+
+**Add or remove a room:** edit `CONFIG.ROOMS` in `index.html`, then commit & push.
+
+**Add or change a checklist item:** in `index.html`, copy an existing
+`<div class="item" data-section="..." data-services="...">`, set its section and the service types it
+applies to, then commit & push.
+
+**View the raw data:** open the Sheet → `Records` tab. **View charts:** open the dashboard URL.
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-06-19  
-**Maintained By:** Development Team  
-**Status:** Active
+## 9. Troubleshooting
+
+| Symptom | Likely cause / fix |
+|---|---|
+| "Incorrect PIN" for a valid user | Check the `Staff` tab: exact Name match, correct PIN, `Active = Yes`. |
+| Nothing submits / "connection error" | Device offline, or the Apps Script deployment is down. Test the `/exec` URL in a browser. |
+| Dashboard shows "No records returned" | The `?action=records` endpoint isn't deployed. Re-publish a new version of the Apps Script. |
+| Dashboard graphs empty after a change | Confirm the backend was redeployed as a **new version** (not a new deployment with a new URL). |
+| Everything stopped working at once | The `/exec` URL changed (a new deployment was created). Update `SHEETS_URL` in `index.html` and `dashboard.html`. |
+| App appears in Google search | Confirm `robots.txt` and the `noindex` meta tag are present; search removal can take time. |
+
+---
+
+## 10. Known limitations & future ideas
+- Plaintext PINs and an open data endpoint (see Security).
+- Timestamps are returned by the records endpoint as ISO/UTC strings; the dashboard converts to the
+  viewer's local timezone, so day/week boundaries can shift for viewers far from the resort's timezone.
+- No photo uploads (a `Photo Links` concept exists in the data but isn't wired up).
+- Possible enhancements: a "Stats" link from the app header, fixed-timezone date handling, PIN hashing,
+  and per-staff or per-room filtering on the dashboard.
+
+---
+
+## 11. Repository map
+```
+housekeeping/
+├─ index.html                     # staff app
+├─ dashboard.html                 # stats dashboard (Chart.js)
+├─ robots.txt                     # search-engine block
+├─ apps-script/Code.gs            # version-controlled copy of the backend
+├─ docs/
+│  ├─ architecture.svg            # diagram used in this guide
+│  └─ screenshots/                # login.png, form.png, dashboard.png
+├─ HOUSEKEEPING_APP_SUPPORT.md    # this document (source)
+├─ HOUSEKEEPING_APP_SUPPORT.pdf   # shareable PDF (generated from the .md)
+└─ CLAUDE.md                      # project context for AI-assisted maintenance
+```

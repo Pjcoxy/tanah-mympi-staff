@@ -46,9 +46,9 @@ Google Sheets), and simple enough to maintain without a developer on staff.
 
 ## 3. Visual tour
 
-> **Screenshots:** drop current captures into `docs/screenshots/` with the filenames below and they
-> will appear here and in the PDF. (They were not auto-captured because the preview tool could not
-> render the live pages; grabbing them from the live URLs above gives the cleanest result.)
+> Screenshots live in `docs/screenshots/`. Regenerate them from the live site with
+> `python docs/capture_screenshots.py` (headless Edge), then rebuild the PDFs with
+> `python docs/build_docs.py`. Re-do both after any UI change.
 
 **Login screen**
 

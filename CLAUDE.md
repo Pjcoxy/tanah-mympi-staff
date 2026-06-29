@@ -32,6 +32,7 @@ web app. No build step — self-contained HTML files with vanilla JS/CSS plus a 
 - `HOUSEKEEPING_USER_GUIDE.pdf` — shareable PDF, GENERATED from the `.md` (don't hand-edit).
 - `docs/architecture.svg` — architecture diagram used in the support guide.
 - `docs/build_docs.py` — regenerates BOTH PDFs: `python docs/build_docs.py`.
+- `docs/capture_screenshots.py` — re-captures login/form/dashboard PNGs from the live site (headless Edge).
 - `docs/screenshots/` — login.png / form.png / dashboard.png (shared by both guides).
 - `robots.txt` — blocks crawlers.
 
@@ -42,9 +43,10 @@ THREE docs, three audiences — update all that are affected in the same turn th
    for architects/support.
 3. **`HOUSEKEEPING_USER_GUIDE.md`** — plain-language how-to for housekeeping staff (+ a manager
    dashboard note).
-After editing #2 or #3, regenerate the PDFs: `python docs/build_docs.py` (Markdown → styled HTML →
-Edge headless `--print-to-pdf`; missing screenshots become placeholders automatically). Commit the
-refreshed `.pdf`s so current shareable copies always exist in the repo. The old `.rtf` was deleted.
+After a UI change: re-capture screenshots with `python docs/capture_screenshots.py`, then regenerate
+the PDFs with `python docs/build_docs.py` (Markdown → styled HTML → Edge headless `--print-to-pdf`;
+missing screenshots become placeholders automatically). Commit the refreshed `.pdf`s and PNGs so
+current shareable copies always exist in the repo. The old `.rtf` was deleted.
 
 ## Backend (Google Apps Script + Google Sheet)
 - **Data Sheet** (`SHEET_ID` `19lrq6Sp7wY0q74mtZd0VDgLwj4QGu1Vf-LUEEMDzbPY`), still titled
@@ -117,5 +119,5 @@ Progressive disclosure: Step 1 Room → Step 2 Service Type → Step 3 Checklist
   (records endpoint returning data). Rebuilt the human support guide
   (`HOUSEKEEPING_APP_SUPPORT.md` + generated `.pdf` + `docs/architecture.svg` + build script);
   deleted the stale `.rtf`. Added a staff-facing `HOUSEKEEPING_USER_GUIDE.md` (+ generated `.pdf`) and
-  generalised the PDF builder to `docs/build_docs.py` (builds both guides). Screenshots still pending
-  (preview tool couldn't capture the live pages).
+  generalised the PDF builder to `docs/build_docs.py` (builds both guides). Captured real screenshots
+  (login/form/dashboard) via headless Edge (`docs/capture_screenshots.py`) and embedded them in both PDFs.

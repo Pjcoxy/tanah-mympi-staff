@@ -240,8 +240,11 @@ housekeeping/
 ├─ apps-script/Code.gs            # version-controlled copy of the backend
 ├─ docs/
 │  ├─ architecture.svg            # diagram used in this guide
+│  ├─ build_docs.py               # regenerates both guide PDFs
 │  └─ screenshots/                # login.png, form.png, dashboard.png
-├─ HOUSEKEEPING_APP_SUPPORT.md    # this document (source)
+├─ HOUSEKEEPING_APP_SUPPORT.md    # this document — technical guide (source)
 ├─ HOUSEKEEPING_APP_SUPPORT.pdf   # shareable PDF (generated from the .md)
+├─ HOUSEKEEPING_USER_GUIDE.md     # staff how-to guide (source)
+├─ HOUSEKEEPING_USER_GUIDE.pdf    # shareable PDF (generated from the .md)
 └─ CLAUDE.md                      # project context for AI-assisted maintenance
 ```

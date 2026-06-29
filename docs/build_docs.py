@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-"""Build HOUSEKEEPING_APP_SUPPORT.pdf from the markdown source.
+"""Build the shareable PDFs from their markdown sources.
 
-Pipeline: Markdown -> styled HTML -> PDF (via headless Edge --print-to-pdf).
-Missing screenshots are replaced with a tidy "pending" placeholder so the PDF
-stays clean until real captures are dropped into docs/screenshots/.
+Pipeline per doc: Markdown -> styled HTML -> PDF (headless Edge --print-to-pdf).
+Missing screenshots are replaced with a tidy "pending" placeholder so the PDFs
+stay clean until real captures are dropped into docs/screenshots/.
 
-Usage:  python docs/build_support_pdf.py
-Re-run whenever HOUSEKEEPING_APP_SUPPORT.md changes.
+Builds:
+  HOUSEKEEPING_APP_SUPPORT.md   -> HOUSEKEEPING_APP_SUPPORT.pdf   (technical/support)
+  HOUSEKEEPING_USER_GUIDE.md    -> HOUSEKEEPING_USER_GUIDE.pdf    (staff-facing)
+
+Usage:  python docs/build_docs.py
+Re-run whenever either markdown source changes.
 """
-import os, re, sys, subprocess, tempfile
+import os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MD = os.path.join(ROOT, "HOUSEKEEPING_APP_SUPPORT.md")
-PDF = os.path.join(ROOT, "HOUSEKEEPING_APP_SUPPORT.pdf")
+DOCS = ["HOUSEKEEPING_APP_SUPPORT.md", "HOUSEKEEPING_USER_GUIDE.md"]
 
 EDGE_CANDIDATES = [
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -53,39 +56,44 @@ def find_edge():
 
 
 def replace_missing_images(html):
-    """Swap <img> tags whose file is missing for a placeholder box."""
     def repl(m):
         src = m.group(1)
         if src.lower().startswith(("http://", "https://")):
             return m.group(0)
         if os.path.exists(os.path.join(ROOT, src.replace("/", os.sep))):
             return m.group(0)
-        return ('<span class="screenshot-pending">[ image pending: %s ]</span>' % src)
+        return '<span class="screenshot-pending">[ image pending: %s ]</span>' % src
     return re.sub(r'<img[^>]*src="([^"]+)"[^>]*>', repl, html)
 
 
-def main():
+def build(md_name, edge):
     import markdown
-    with open(MD, encoding="utf-8") as f:
+    md_path = os.path.join(ROOT, md_name)
+    pdf_path = os.path.join(ROOT, os.path.splitext(md_name)[0] + ".pdf")
+    with open(md_path, encoding="utf-8") as f:
         text = f.read()
     body = markdown.markdown(text, extensions=["tables", "fenced_code", "toc", "sane_lists"])
     body = replace_missing_images(body)
     html = ("<!DOCTYPE html><html><head><meta charset='utf-8'>"
             "<style>%s</style></head><body>%s</body></html>" % (CSS, body))
-
-    tmp = os.path.join(ROOT, "_support_tmp.html")
+    tmp = os.path.join(ROOT, "_doc_tmp.html")
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(html)
     try:
-        edge = find_edge()
         url = "file:///" + tmp.replace("\\", "/")
         subprocess.run([edge, "--headless=new", "--disable-gpu",
-                        "--no-pdf-header-footer", "--print-to-pdf=" + PDF, url],
+                        "--no-pdf-header-footer", "--print-to-pdf=" + pdf_path, url],
                        check=True, timeout=120)
-        print("Wrote", PDF)
+        print("Wrote", pdf_path)
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
+
+
+def main():
+    edge = find_edge()
+    for md in DOCS:
+        build(md, edge)
 
 
 if __name__ == "__main__":

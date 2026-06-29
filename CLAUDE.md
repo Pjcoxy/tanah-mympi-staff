@@ -26,20 +26,25 @@ web app. No build step — self-contained HTML files with vanilla JS/CSS plus a 
 - `index.html` — the entire staff app (single file): config + UI + checklist + login + submit.
 - `dashboard.html` — stats dashboard (Chart.js from CDN). Reads live data via `?action=records`.
 - `apps-script/Code.gs` — version-controlled COPY of the Apps Script backend (see Backend below).
-- `HOUSEKEEPING_APP_SUPPORT.md` — human support / as-built guide (the source).
+- `HOUSEKEEPING_APP_SUPPORT.md` — technical support / as-built guide (source).
 - `HOUSEKEEPING_APP_SUPPORT.pdf` — shareable PDF, GENERATED from the `.md` (don't hand-edit).
+- `HOUSEKEEPING_USER_GUIDE.md` — staff-facing how-to-use guide (source).
+- `HOUSEKEEPING_USER_GUIDE.pdf` — shareable PDF, GENERATED from the `.md` (don't hand-edit).
 - `docs/architecture.svg` — architecture diagram used in the support guide.
-- `docs/build_support_pdf.py` — regenerates the PDF: `python docs/build_support_pdf.py`.
-- `docs/screenshots/` — login.png / form.png / dashboard.png for the guide.
+- `docs/build_docs.py` — regenerates BOTH PDFs: `python docs/build_docs.py`.
+- `docs/screenshots/` — login.png / form.png / dashboard.png (shared by both guides).
 - `robots.txt` — blocks crawlers.
 
 ## Documentation model (keep these in sync on EVERY change)
-Two docs, two audiences — update both in the same turn when the app changes:
+THREE docs, three audiences — update all that are affected in the same turn the app changes:
 1. **`CLAUDE.md`** (this file) — terse project/operator context for AI-assisted maintenance.
-2. **`HOUSEKEEPING_APP_SUPPORT.md`** — standalone human guide (architecture, ops, troubleshooting).
-   After editing it, regenerate the PDF: `python docs/build_support_pdf.py` (Markdown → styled HTML →
-   Edge headless `--print-to-pdf`; missing screenshots become placeholders automatically). Commit the
-   refreshed `.pdf` so a current shareable copy always exists in the repo. The old `.rtf` was deleted.
+2. **`HOUSEKEEPING_APP_SUPPORT.md`** — technical guide (architecture, ops, security, troubleshooting)
+   for architects/support.
+3. **`HOUSEKEEPING_USER_GUIDE.md`** — plain-language how-to for housekeeping staff (+ a manager
+   dashboard note).
+After editing #2 or #3, regenerate the PDFs: `python docs/build_docs.py` (Markdown → styled HTML →
+Edge headless `--print-to-pdf`; missing screenshots become placeholders automatically). Commit the
+refreshed `.pdf`s so current shareable copies always exist in the repo. The old `.rtf` was deleted.
 
 ## Backend (Google Apps Script + Google Sheet)
 - **Data Sheet** (`SHEET_ID` `19lrq6Sp7wY0q74mtZd0VDgLwj4QGu1Vf-LUEEMDzbPY`), still titled
@@ -111,4 +116,6 @@ Progressive disclosure: Step 1 Room → Step 2 Service Type → Step 3 Checklist
   repo copy of the backend at `apps-script/Code.gs`. Backend redeployed and dashboard verified live
   (records endpoint returning data). Rebuilt the human support guide
   (`HOUSEKEEPING_APP_SUPPORT.md` + generated `.pdf` + `docs/architecture.svg` + build script);
-  deleted the stale `.rtf`. Screenshots still pending (preview tool couldn't capture the live pages).
+  deleted the stale `.rtf`. Added a staff-facing `HOUSEKEEPING_USER_GUIDE.md` (+ generated `.pdf`) and
+  generalised the PDF builder to `docs/build_docs.py` (builds both guides). Screenshots still pending
+  (preview tool couldn't capture the live pages).

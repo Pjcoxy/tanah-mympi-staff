@@ -69,8 +69,14 @@ Progressive disclosure: Step 1 Room → Step 2 Service Type → Step 3 Checklist
 - Pulls `?action=records`, filters to `Type === 'SUBMISSION'`, and renders six charts:
   rooms/week + 4-week rolling average, per-staff totals, service-type mix, action flags,
   busiest day-of-week, busiest rooms. `render(records)` is global; `load()` fetches.
-- `parseTs()` parses the text timestamps; weeks bucket to the Monday start.
+- `parseTs()` parses the timestamps; weeks bucket to the Monday start.
 - Endpoint is **open** (anyone with the URL can load stats) — operational data only, no PINs.
+- LIVE & verified (2026-06-29): `?action=records` returns the data and charts render.
+- Note: the endpoint returns date cells as **ISO/UTC** strings (e.g. `...T08:54:00.000Z`), not the
+  `18 June 2026, 4:54 PM` text format. `parseTs()` handles both via a `new Date()` fallback. Because
+  ISO is UTC, the browser shows them in the viewer's local TZ — a late-night entry can shift to the
+  adjacent day/week for far-away viewers. Pin to a fixed TZ (backend `formatTs`, or parse as a fixed
+  offset in `parseTs`) only if exact day boundaries ever matter.
 
 ## Working notes for maintenance
 - No package.json / no build. Edit the HTML directly; preview locally (a `.claude/launch.json`
@@ -90,4 +96,5 @@ Progressive disclosure: Step 1 Room → Step 2 Service Type → Step 3 Checklist
   Made repo public + enabled GitHub Pages; added `noindex` + `robots.txt`. Renamed
   `housekeeping.html` → `index.html` for a clean Pages URL. Added "Logged in as" header banner.
   Added `dashboard.html` (Chart.js stats) and the `?action=records` backend endpoint; committed a
-  repo copy of the backend at `apps-script/Code.gs`.
+  repo copy of the backend at `apps-script/Code.gs`. Backend redeployed and dashboard verified live
+  (records endpoint returning data).

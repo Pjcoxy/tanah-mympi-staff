@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Tanah Mympi — Housekeeping Stats</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+:root{--ocean:#1a4a5c;--teal:#2a7a8a;--sand:#f5ede0;--cream:#faf7f2;--ink:#1a2a2f;--muted:#6b8a91;--border:#d9cfc4;--green:#2e7d52;--red:#c0392b;--gold:#c8963e;--sky:#7dd8e8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+header{background:var(--ocean);color:#fff;padding:16px 20px;position:sticky;top:0;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:1.05rem;font-weight:700}
+.brand span{display:block;font-size:.68rem;font-weight:400;opacity:.7;letter-spacing:1.5px;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:14px}
+.updated{font-size:.72rem;opacity:.75}
+.btn{font-size:.78rem;color:#fff;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:7px 14px;cursor:pointer;font-family:inherit}
+.btn:hover{background:rgba(255,255,255,.25)}
+.wrap{max-width:1100px;margin:0 auto;padding:18px 16px 48px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.kpi .label{font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px}
+.kpi .value{font-size:1.9rem;font-weight:700;color:var(--ocean);line-height:1}
+.kpi .sub{font-size:.72rem;color:var(--muted);margin-top:5px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.card h2{font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.card .hint{font-size:.72rem;color:var(--muted);margin-bottom:12px}
+.card.wide{grid-column:1/-1}
+.chart-box{position:relative;height:300px}
+.state{text-align:center;padding:60px 20px;color:var(--muted)}
+.state.error{color:var(--red)}
+.state .big{font-size:1.1rem;font-weight:600;margin-bottom:8px;color:var(--ink)}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+a{color:var(--teal)}
+</style>
+</head>
+<body>
+<header>
+<div class="brand">Tanah Mympi <span>Housekeeping Stats</span></div>
+<div class="header-right">
+<span class="updated" id="updated"></span>
+<button class="btn" onclick="load()">↻ Refresh</button>
+</div>
+</header>
+
+<div class="wrap">
+<div id="loading" class="state"><div class="spinner"></div>Loading records…</div>
+<div id="error" class="state error" style="display:none"></div>
+<div id="content" style="display:none">
+  <div class="kpis" id="kpis"></div>
+  <div class="grid">
+    <div class="card wide">
+      <h2>Rooms cleaned per week</h2>
+      <div class="hint">Completed sign-offs each week, with a 4-week rolling average.</div>
+      <div class="chart-box"><canvas id="weeklyChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Rooms cleaned by staff</h2>
+      <div class="hint">Total completed sign-offs per staff member.</div>
+      <div class="chart-box"><canvas id="staffChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Service type mix</h2>
+      <div class="hint">Share of each service type.</div>
+      <div class="chart-box"><canvas id="serviceChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Action items flagged</h2>
+      <div class="hint">Issues raised during sign-offs.</div>
+      <div class="chart-box"><canvas id="actionChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Busiest day of week</h2>
+      <div class="hint">When sign-offs happen most.</div>
+      <div class="chart-box"><canvas id="dayChart"></canvas></div>
+    </div>
+    <div class="card wide">
+      <h2>Busiest rooms</h2>
+      <div class="hint">Rooms with the most sign-offs.</div>
+      <div class="chart-box"><canvas id="roomChart"></canvas></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbwcLK-X6qqh75VZQov3bXOgZj9CTSt4wG_GNngnGPxB-i2U_iMjaJzqbLwKuULZiGUQxA/exec';
+const PALETTE=['#2a7a8a','#c8963e','#2e7d52','#1a4a5c','#7dd8e8','#c0392b','#9b6dbf','#e08a3c'];
+const MONTHS={january:0,february:1,march:2,april:3,may:4,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let charts={};
+
+// Parse "18 June 2026, 4:54 PM" (time optional) into a Date.
+function parseTs(s){
+  if(!s) return null;
+  const m=String(s).match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:,?\s+(\d{1,2}):(\d{2})\s*([AP]M))?/i);
+  if(m){
+    const mon=MONTHS[m[2].toLowerCase()];
+    if(mon==null) return null;
+    let hr=m[4]?+m[4]:0; const min=m[5]?+m[5]:0;
+    if(m[6]){const ap=m[6].toUpperCase(); if(ap==='PM'&&hr<12)hr+=12; if(ap==='AM'&&hr===12)hr=0;}
+    return new Date(+m[3],mon,+m[1],hr,min);
+  }
+  const d=new Date(s); return isNaN(d)?null:d;
+}
+// Monday of the week containing d.
+function weekStart(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());const k=(x.getDay()+6)%7;x.setDate(x.getDate()-k);return x;}
+function fmtWeek(d){return d.toLocaleDateString(undefined,{day:'2-digit',month:'short'});}
+function keyOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+// Normalise a record from the endpoint (object or positional array).
+function normalise(r){
+  if(Array.isArray(r)){
+    return {type:r[0],ts:r[1],staff:r[2],room:r[3],service:r[4],action:r[5]};
+  }
+  return {
+    type:r.type||r.Type,
+    ts:r.timestamp||r.Timestamp||r.ts,
+    staff:r.staff||r['Staff Member']||r.staffMember,
+    room:r.room||r.Room,
+    service:r.serviceType||r['Service Type']||r.service,
+    action:r.actionRequired||r['Action Required']||r.action
+  };
+}
+
+function countMap(arr,key){const m={};arr.forEach(x=>{const k=key(x);if(k==null||k==='')return;m[k]=(m[k]||0)+1;});return m;}
+function sortedEntries(m){return Object.entries(m).sort((a,b)=>b[1]-a[1]);}
+
+function render(raw){
+  // Make the container visible BEFORE building charts so Chart.js can measure
+  // its parent — creating charts inside a display:none element locks them at 0x0.
+  document.getElementById('loading').style.display='none';
+  document.getElementById('error').style.display='none';
+  document.getElementById('content').style.display='block';
+
+  const recs=(raw||[]).map(normalise);
+  const subs=recs.filter(r=>String(r.type||'').toUpperCase()==='SUBMISSION'&&parseTs(r.ts))
+                 .map(r=>({...r,date:parseTs(r.ts)}));
+
+  // ---- Weekly series (fill gaps) ----
+  const byWeek=countMap(subs,r=>keyOf(weekStart(r.date)));
+  let weeks=[];
+  if(subs.length){
+    let cur=weekStart(new Date(Math.min(...subs.map(r=>r.date))));
+    const end=weekStart(new Date(Math.max(...subs.map(r=>r.date))));
+    while(cur<=end){weeks.push(new Date(cur));cur.setDate(cur.getDate()+7);}
+  }
+  const weekLabels=weeks.map(fmtWeek);
+  const weekCounts=weeks.map(w=>byWeek[keyOf(w)]||0);
+  const rolling=weekCounts.map((_,i)=>{const s=weekCounts.slice(Math.max(0,i-3),i+1);return +(s.reduce((a,b)=>a+b,0)/s.length).toFixed(1);});
+
+  // ---- KPIs ----
+  const total=subs.length;
+  const avg=weeks.length?(total/weeks.length).toFixed(1):'0';
+  const thisWeekKey=keyOf(weekStart(new Date()));
+  const thisWeek=byWeek[thisWeekKey]||0;
+  const staffCount=new Set(subs.map(r=>r.staff).filter(Boolean)).size;
+  document.getElementById('kpis').innerHTML=[
+    ['Total rooms cleaned',total,'all time'],
+    ['This week',thisWeek,'sign-offs so far'],
+    ['Weekly average',avg,'rooms / week'],
+    ['Active staff',staffCount,'with sign-offs']
+  ].map(k=>`<div class="kpi"><div class="label">${k[0]}</div><div class="value">${k[1]}</div><div class="sub">${k[2]}</div></div>`).join('');
+
+  // ---- Other aggregates ----
+  const byStaff=sortedEntries(countMap(subs,r=>r.staff));
+  const byService=sortedEntries(countMap(subs,r=>r.service));
+  const byRoom=sortedEntries(countMap(subs,r=>r.room)).slice(0,12);
+  const byDay=DAYS.map((d,i)=>subs.filter(r=>r.date.getDay()===i).length);
+  // Action flags: split the comma-separated "Action Required", ignore None.
+  const actionMap={};
+  subs.forEach(r=>{const a=String(r.action||'').trim();if(!a||/^none$/i.test(a))return;a.split(',').map(s=>s.trim()).filter(Boolean).forEach(p=>{actionMap[p]=(actionMap[p]||0)+1;});});
+  const byAction=sortedEntries(actionMap);
+
+  Object.values(charts).forEach(c=>c&&c.destroy());charts={};
+  const noLegend={plugins:{legend:{display:false}}};
+  const baseBar={responsive:true,maintainAspectRatio:false,...noLegend,scales:{y:{beginAtZero:true,ticks:{precision:0}}}};
+
+  charts.weekly=new Chart(weeklyChart,{data:{labels:weekLabels,datasets:[
+    {type:'bar',label:'Rooms cleaned',data:weekCounts,backgroundColor:'#2a7a8a',borderRadius:4,order:2},
+    {type:'line',label:'4-week avg',data:rolling,borderColor:'#c8963e',backgroundColor:'#c8963e',tension:.3,pointRadius:3,borderWidth:2,order:1}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
+
+  charts.staff=new Chart(staffChart,{type:'bar',data:{labels:byStaff.map(e=>e[0]),datasets:[{data:byStaff.map(e=>e[1]),backgroundColor:'#1a4a5c',borderRadius:4}]},options:{...baseBar,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{precision:0}}}}});
+
+  charts.service=new Chart(serviceChart,{type:'doughnut',data:{labels:byService.map(e=>e[0]),datasets:[{data:byService.map(e=>e[1]),backgroundColor:PALETTE}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}});
+
+  charts.action=new Chart(actionChart,{type:'bar',data:{labels:byAction.map(e=>e[0]),datasets:[{data:byAction.map(e=>e[1]),backgroundColor:'#c0392b',borderRadius:4}]},options:baseBar});
+
+  charts.day=new Chart(dayChart,{type:'bar',data:{labels:DAYS,datasets:[{data:byDay,backgroundColor:'#2e7d52',borderRadius:4}]},options:baseBar});
+
+  charts.room=new Chart(roomChart,{type:'bar',data:{labels:byRoom.map(e=>e[0]),datasets:[{data:byRoom.map(e=>e[1]),backgroundColor:'#c8963e',borderRadius:4}]},options:baseBar});
+
+  document.getElementById('updated').textContent='Updated '+new Date().toLocaleString();
+}
+
+function showError(msg){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('content').style.display='none';
+  const e=document.getElementById('error');
+  e.style.display='block';
+  e.innerHTML='<div class="big">Couldn’t load stats</div>'+msg;
+}
+
+async function load(){
+  document.getElementById('loading').style.display='block';
+  document.getElementById('error').style.display='none';
+  try{
+    const res=await fetch(SHEETS_URL+'?action=records');
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const recs=Array.isArray(data)?data:(data.records||data.rows||[]);
+    if(!recs.length){showError('No records returned. Has the <code>?action=records</code> endpoint been added to your Apps Script yet?');return;}
+    render(recs);
+  }catch(err){
+    showError('The data endpoint isn’t responding yet ('+err.message+').<br>The dashboard needs <code>?action=records</code> added to your Apps Script.');
+  }
+}
+load();
+</script>
+</body>
+</html>

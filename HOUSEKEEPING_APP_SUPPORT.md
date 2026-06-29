@@ -110,7 +110,7 @@ The Tanah Mympi Housekeeping App is a web-based checklist application designed t
 
 ## Component Descriptions
 
-### 1. Frontend (housekeeping.html)
+### 1. Frontend (index.html)
 
 **Size:** ~8KB (minified)  
 **Type:** Single-page application (SPA)
@@ -489,12 +489,12 @@ Create spreadsheet with three sheets:
    - Execute as: Your account
    - Who has access: Anyone
 4. Copy the deployment URL
-5. Replace CONFIG.SHEETS_URL in housekeeping.html with your URL
+5. Replace CONFIG.SHEETS_URL in index.html with your URL
 ```
 
 **3. Deploy Frontend**
 ```
-1. Save housekeeping.html to your web server
+1. Save index.html to your web server
 2. Ensure HTTPS is enabled
 3. Configure staff names in Google Sheets
 4. Generate/hash staff PINs
@@ -512,7 +512,7 @@ Create spreadsheet with three sheets:
 
 ### Configuration
 
-**In housekeeping.html, adjust:**
+**In index.html, adjust:**
 ```javascript
 const CONFIG = {
   SHEETS_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
